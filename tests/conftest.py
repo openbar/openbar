@@ -7,6 +7,7 @@ from typing import NamedTuple
 
 import pytest
 import sh
+from git import Repo
 from mergedeep import Strategy
 from mergedeep import merge
 
@@ -94,6 +95,15 @@ def project_dirs(request, tmp_path_factory):
     )
 
 
+@pytest.fixture(scope="session")
+def poky_dir(project_dirs):
+    poky_url = "https://github.com/yoctoproject/poky.git"
+    poky_dir = project_dirs.session_dir / "poky"
+    logger.info(f"Cloning poky from {poky_url}")
+    Repo.clone_from(poky_url, poky_dir)
+    return poky_dir
+
+
 class Project:
     def __init__(self, root_dir, project_dirs, **kwargs):
         self.__config = {
@@ -127,6 +137,20 @@ class Project:
             export OB_TYPE          := {self.type}
             export OB_DEFCONFIG_DIR := {self.defconfig_dir}
             export OB_CONTAINER_DIR := {self.container_dir}
+        """
+
+        if self.type == "initenv":
+            data += f"""
+                export OB_INITENV_SCRIPT := {self.initenv_script}
+            """
+        elif self.type == "yocto":
+            data += f"""
+                export OB_INITENV_SCRIPT := {self.poky_dir / "oe-init-build-env"}
+            """
+        elif self.type != "simple":
+            raise ValueError("Invalid project type")
+
+        data += f"""
             include {self.openbar_dir}/core/main.mk
         """
 
