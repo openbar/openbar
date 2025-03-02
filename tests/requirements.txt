@@ -1,3 +1,4 @@
+gitpython
 mergedeep
 pytest
 sh
