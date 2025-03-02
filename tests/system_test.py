@@ -72,3 +72,14 @@ def test_project_fixture(create_project):
 
     # Make command
     project.make("help")
+
+
+def test_hello(create_project):
+    project = create_project(
+        defconfig="hello_defconfig",
+    )
+
+    stdout = project.make()
+
+    assert stdout[0].startswith(f"Building {project.container_engine} image")
+    assert stdout[1] == "Hello"
