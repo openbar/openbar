@@ -210,7 +210,12 @@ class Project:
 
 
 @pytest.fixture
-def create_project(request, tmp_path, project_dirs):
+def project_default_kwargs():
+    return {}
+
+
+@pytest.fixture
+def create_project(request, tmp_path, project_default_kwargs, project_dirs):
     engine = request.getfixturevalue("container_engine")
 
     def _create_project(**kwargs):
@@ -218,6 +223,7 @@ def create_project(request, tmp_path, project_dirs):
             root_dir=tmp_path,
             project_dirs=project_dirs,
             container_engine=engine,
+            **project_default_kwargs,
             **kwargs,
         )
 
