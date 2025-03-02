@@ -117,8 +117,8 @@ def test_build_dir(create_project):
     assert "OB_BUILD_DIR=/tmp/absolute_dir" in stdout
 
 
-def test_foreach(project_config, create_project):
-    project = create_project(defconfig_dir=project_config["defconfig_dir"] / "foreach")
+def test_foreach(project_dirs, create_project):
+    project = create_project(defconfig_dir=project_dirs.tests_data_dir / "foreach")
     stdout = project.make("foreach")
     for index, name in enumerate(["bar", "baz", "foo"]):
         assert stdout[3 * index + 0] == f"Build configured for {name}_defconfig"
