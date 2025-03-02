@@ -78,13 +78,16 @@ def _container_engine_guard(request, available_container_engines):
 @pytest.fixture
 def project_config(request, tmp_path):
     openbar_dir = request.config.rootpath
-    data_dir = openbar_dir / "tests/data"
+    tests_data_dir = openbar_dir / "tests/data"
+    wizard_dir = openbar_dir / "wizard"
     return {
         "type": "simple",
         "root_dir": tmp_path,
         "openbar_dir": openbar_dir,
-        "defconfig_dir": data_dir,
-        "container_dir": data_dir / "container",
+        "tests_data_dir": tests_data_dir,
+        "wizard_dir": wizard_dir,
+        "defconfig_dir": tests_data_dir,
+        "container_dir": wizard_dir / "container",
     }
 
 
