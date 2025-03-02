@@ -159,8 +159,14 @@ class Project:
 
         result = command(*command_args, **command_kwargs)
 
+        def debug_stdout(stdout):
+            for line in stdout.splitlines():
+                logger.debug(line)
+
         if command_kwargs.get("_return_cmd", False):
+            debug_stdout(result.stdout)
             return result
+        debug_stdout(result)
         return result.splitlines()
 
     def make(self, *args, **kwargs):
