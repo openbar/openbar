@@ -1,0 +1,6 @@
+hello:
+	echo Hello baz
+
+OB_MANUAL_TARGETS += goodbye
+goodbye:
+	echo Goodbye baz

@@ -1,0 +1,14 @@
+foo:
+	echo Foo
+
+bar:
+	echo Bar
+
+OB_MANUAL_TARGETS += baz
+baz:
+	echo Baz
+
+OB_MANUAL_TARGETS += env
+env:
+	env
+	test -d ${OB_BUILD_DIR}
