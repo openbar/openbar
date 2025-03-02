@@ -1,7 +1,9 @@
 import logging
 import os
+from pathlib import Path
 from shlex import quote
 from textwrap import dedent
+from typing import NamedTuple
 
 import pytest
 import sh
@@ -75,25 +77,33 @@ def _container_engine_guard(request, available_container_engines):
         pytest.skip(f"The container engine '{engine}' is not enabled")
 
 
-@pytest.fixture
-def project_config(request, tmp_path):
-    openbar_dir = request.config.rootpath
-    tests_data_dir = openbar_dir / "tests/data"
-    wizard_dir = openbar_dir / "wizard"
-    return {
-        "type": "simple",
-        "root_dir": tmp_path,
-        "openbar_dir": openbar_dir,
-        "tests_data_dir": tests_data_dir,
-        "wizard_dir": wizard_dir,
-        "defconfig_dir": tests_data_dir,
-        "container_dir": wizard_dir / "container",
-    }
+class ProjectDirectories(NamedTuple):
+    session_dir: Path
+    openbar_dir: Path
+    tests_data_dir: Path
+    wizard_dir: Path
+
+
+@pytest.fixture(scope="session")
+def project_dirs(request, tmp_path_factory):
+    return ProjectDirectories(
+        session_dir=tmp_path_factory.getbasetemp(),
+        openbar_dir=request.config.rootpath,
+        tests_data_dir=request.config.rootpath / "tests/data",
+        wizard_dir=request.config.rootpath / "wizard",
+    )
 
 
 class Project:
-    def __init__(self, project_config, **kwargs):
-        self.__config = project_config
+    def __init__(self, root_dir, project_dirs, **kwargs):
+        self.__config = {
+            "type": "simple",
+            "root_dir": root_dir,
+            "openbar_dir": project_dirs.openbar_dir,
+            "defconfig_dir": project_dirs.tests_data_dir,
+            "container_dir": project_dirs.wizard_dir / "container",
+        }
+
         merge(self.__config, kwargs, strategy=Strategy.ADDITIVE)
 
         self.generate_makefile()
@@ -176,10 +186,15 @@ class Project:
 
 
 @pytest.fixture
-def create_project(request, project_config):
+def create_project(request, tmp_path, project_dirs):
     engine = request.getfixturevalue("container_engine")
 
     def _create_project(**kwargs):
-        return Project(project_config=project_config, container_engine=engine, **kwargs)
+        return Project(
+            root_dir=tmp_path,
+            project_dirs=project_dirs,
+            container_engine=engine,
+            **kwargs,
+        )
 
     return _create_project
