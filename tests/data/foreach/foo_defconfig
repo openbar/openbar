@@ -1,0 +1,6 @@
+hello:
+	echo Hello foo
+
+OB_MANUAL_TARGETS += goodbye
+goodbye:
+	echo Goodbye foo
