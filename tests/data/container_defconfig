@@ -1,0 +1,21 @@
+hello:
+	echo Hello
+
+OB_MANUAL_TARGETS += id
+id:
+	id
+
+OB_MANUAL_TARGETS += home
+home:
+	test "$${HOME}"
+	test -d "$${HOME}"
+	touch "$${HOME}/write_test"
+	rm -f "$${HOME}/write_test"
+	echo "$${HOME}"
+
+OB_MANUAL_TARGETS += volumes
+volumes:
+	test "$${TEST_FILE}"
+	test -f "$${TEST_FILE}"
+	test -f /opt/test_file
+	pwd
