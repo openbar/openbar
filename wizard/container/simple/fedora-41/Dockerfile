@@ -5,4 +5,5 @@ RUN	set -x \
 		bash \
 		gawk \
 		make \
+		util-linux \
 	&& dnf clean all
