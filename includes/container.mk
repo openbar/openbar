@@ -27,7 +27,7 @@ CONTAINER_ENV_ARGS :=
 
 define container-env-args
   ifdef ${1}
-    CONTAINER_ENV_ARGS += -e ${1}="${${1}}"
+    CONTAINER_ENV_ARGS += -e ${1}="$(call unquote,${${1}})"
   endif
 endef
 

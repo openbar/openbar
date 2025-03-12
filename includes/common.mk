@@ -36,6 +36,10 @@ CONFIG := ${OB_ROOT_DIR}/.config
 # The container home directory.
 OB_CONTAINER_HOME := /home/container
 
+## unquote <string>
+# Removes single quotes from a string, especially one containing spaces.
+unquote = $(subst @@@@@,${SPACE},$(patsubst '%',%,$(subst ${SPACE},@@@@@,${1})))
+
 ## notfirstword <list>
 # Return all elements of the list except the first one.
 notfirstword = $(wordlist 2,$(words ${1}),${1})
@@ -99,7 +103,7 @@ CONFIG_MAKE := ${MAKE} MAKE=true
 
 define export-variable-config
   ifdef ${1}
-    CONFIG_MAKE += ${1}="${${1}}"
+    CONFIG_MAKE += ${1}="$(call unquote,${${1}})"
   endif
 endef
 
