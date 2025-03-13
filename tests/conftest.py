@@ -141,7 +141,7 @@ class Project:
 
         if self.type == "initenv":
             data += f"""
-                export OB_INITENV_SCRIPT := {self.initenv_script}
+                export OB_INITENV_SCRIPT := {self.defconfig_dir / self.initenv_script}
             """
         elif self.type == "yocto":
             data += f"""

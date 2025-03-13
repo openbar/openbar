@@ -1,0 +1,90 @@
+test_export:
+ifdef TEST_VAR
+	echo defined
+else
+	echo undefined
+endif
+	echo ${TEST_VAR}
+	echo $${TEST_VAR}
+
+override OB_EXPORT += TEST_ENV_VAR
+
+test_env_cfg:
+ifdef TEST_ENV_VAR
+	echo defined
+else
+	echo undefined
+endif
+	echo ${TEST_ENV_VAR}
+	echo $${TEST_ENV_VAR}
+
+TEST_CFG_VAR = cfg
+
+test_cfg:
+ifdef TEST_CFG_VAR
+	echo defined
+else
+	echo undefined
+endif
+	echo ${TEST_CFG_VAR}
+	echo $${TEST_CFG_VAR}
+
+TEST_DEFAULT_VAR ?= default
+
+test_default:
+ifdef TEST_DEFAULT_VAR
+	echo defined
+else
+	echo undefined
+endif
+	echo ${TEST_DEFAULT_VAR}
+	echo $${TEST_DEFAULT_VAR}
+
+override TEST_RESET_VAR = reset
+
+test_reset:
+ifdef TEST_RESET_VAR
+	echo defined
+else
+	echo undefined
+endif
+	echo ${TEST_RESET_VAR}
+	echo $${TEST_RESET_VAR}
+
+override TEST_APPEND_VAR += append
+
+test_append:
+ifdef TEST_APPEND_VAR
+	echo defined
+else
+	echo undefined
+endif
+	echo ${TEST_APPEND_VAR}
+	echo $${TEST_APPEND_VAR}
+
+test_initenv:
+ifdef TEST_INITENV_VAR
+	echo defined
+else
+	echo undefined
+endif
+	echo ${TEST_INITENV_VAR}
+	echo $${TEST_INITENV_VAR}
+
+test_initenv_append:
+ifdef TEST_INITENV_APPEND_VAR
+	echo defined
+else
+	echo undefined
+endif
+	echo ${TEST_INITENV_APPEND_VAR}
+	echo $${TEST_INITENV_APPEND_VAR}
+
+test_initenv_noexport:
+ifdef TEST_INITENV_NOEXPORT_VAR
+	echo defined
+else
+	echo undefined
+endif
+	echo ${TEST_INITENV_NOEXPORT_VAR}
+	echo $${TEST_INITENV_NOEXPORT_VAR}
