@@ -77,7 +77,7 @@ else
     CONFIG_IGNORE_ERROR := yes
   endif
 
-  $(call config-load-variables)
+  $(call config-load-variables-override)
 endif
 
 ifneq (${HAVE_FOREACH},)

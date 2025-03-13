@@ -109,7 +109,7 @@ endef
 
 $(call foreach-eval,${OB_EXPORT},export-variable-config)
 
-## config-parse <script>
+## config-parse <script> [args]
 # Parse the configuration file using a specified <script>.
 #
 # The output uses the makefile format so it can be evaluated directly.
@@ -117,7 +117,7 @@ $(call foreach-eval,${OB_EXPORT},export-variable-config)
 # By default the $(shell) function replaces newline characters with spaces.
 # So the script is using vertical tabs as separators, that are replaced by
 # newlines later.
-config-parse = $(subst ${VERTICALTAB},${NEWLINE},$(shell LC_ALL=C ${CONFIG_MAKE} -rRnpqf ${CONFIG} 2>&1 | awk -f ${1}))
+config-parse = $(subst ${VERTICALTAB},${NEWLINE},$(shell LC_ALL=C ${CONFIG_MAKE} -rRnpqf ${CONFIG} 2>&1 | awk ${2} -f ${1}))
 
 ## config-load-variables
 # Load the variables from the configuration (and not the targets).
@@ -130,7 +130,7 @@ config-parse = $(subst ${VERTICALTAB},${NEWLINE},$(shell LC_ALL=C ${CONFIG_MAKE}
 #
 # The OB_AUTO_TARGETS are added as dependencies of the "all" target.
 define config-load-variables-noeval
-  $(call config-parse,${OPENBAR_DIR}/scripts/config-variables.awk)
+  $(call config-parse,${OPENBAR_DIR}/scripts/config-variables.awk,${1})
 
   OB_ALL_TARGETS += shell
   OB_MANUAL_TARGETS += shell
@@ -143,6 +143,7 @@ define config-load-variables-noeval
 endef
 
 config-load-variables = $(eval $(call config-load-variables-noeval))
+config-load-variables-override = $(eval $(call config-load-variables-noeval,-v OVERRIDE=1))
 
 ## config-load-targets
 # Load the targets from the configuration (and not the variables).

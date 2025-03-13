@@ -7,7 +7,7 @@ BEGIN				{ ORS = "\v" }
 BEGIN				{ OFS = "" }
 
 # Use colon as field separator to extract the targets.
-BEGIN				{ FS = ":" }
+BEGIN				{ FS = ":| " }
 
 # Handle makefile errors.
 /\*\*\*.*Stop\.$/		{ error = $0;
@@ -103,10 +103,17 @@ BEGIN				{ FS = ":" }
 	if (variable_section > 0) {
 		if (override) {
 			override = 0;
-			printf "override ";
-		}
 
-		if (variable) print;
+			print "override OB_EXPORT += " $1;
+
+			if (OVERRIDE) {
+				print "override " $0;
+				print "export " $1;
+			}
+
+		} else if (variable) {
+			print;
+		}
 	}
 
 	# The next variable must be validated again.
