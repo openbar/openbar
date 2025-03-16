@@ -1,0 +1,5 @@
+DISTRO  := poky
+MACHINE := qemux86-64
+
+build:
+	bitbake make-native
