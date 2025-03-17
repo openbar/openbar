@@ -4,26 +4,15 @@ import re
 import pytest
 import sh
 
+from . import iter_containers
+
 logger = logging.getLogger(__name__)
 
-pytestmark = pytest.mark.parametrize(
-    "container",
-    [
-        "simple/almalinux-9",
-        "simple/alpine",
-        "simple/archlinux",
-        "simple/debian-12",
-        "simple/fedora-41",
-        "simple/opensuse-15.6",
-        "simple/rockylinux-9",
-        "simple/ubuntu-24.04",
-        "yocto/almalinux-9",
-        "yocto/debian-12",
-        "yocto/fedora-40",
-        "yocto/rockylinux-9",
-        "yocto/ubuntu-24.04",
-    ],
-)
+
+def pytest_generate_tests(metafunc):
+    metafunc.parametrize(
+        "container", iter_containers(metafunc.config.rootpath, only_file=True)
+    )
 
 
 @pytest.fixture
