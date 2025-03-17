@@ -82,7 +82,7 @@ class ProjectDirectories(NamedTuple):
     session_dir: Path
     openbar_dir: Path
     tests_data_dir: Path
-    wizard_dir: Path
+    container_dir: Path
 
 
 @pytest.fixture(scope="session")
@@ -91,7 +91,7 @@ def project_dirs(request, tmp_path_factory):
         session_dir=tmp_path_factory.getbasetemp(),
         openbar_dir=request.config.rootpath,
         tests_data_dir=request.config.rootpath / "tests/data",
-        wizard_dir=request.config.rootpath / "wizard",
+        container_dir=request.config.rootpath / "wizard/container",
     )
 
 
@@ -111,7 +111,7 @@ class Project:
             "root_dir": root_dir,
             "openbar_dir": project_dirs.openbar_dir,
             "defconfig_dir": project_dirs.tests_data_dir,
-            "container_dir": project_dirs.wizard_dir / "container",
+            "container_dir": project_dirs.container_dir,
         }
 
         merge(self.__config, kwargs, strategy=Strategy.ADDITIVE)
