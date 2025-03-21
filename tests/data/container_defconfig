@@ -19,3 +19,7 @@ volumes:
 	test -f "$${TEST_FILE}"
 	test -f /opt/test_file
 	pwd
+
+OB_MANUAL_TARGETS += os_release
+os_release:
+	. /etc/os-release && echo $$NAME

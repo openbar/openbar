@@ -65,3 +65,27 @@ def test_volumes(create_project, project_dirs):
     )
 
     assert stdout[-1] == str(project.root_dir)
+
+
+def test_os_release(create_project, container):
+    project = create_project(defconfig="container_defconfig")
+    stdout = project.make("os_release")
+    image = container.split("/", 1)[1]
+    if image.startswith("almalinux"):
+        assert stdout[-1].startswith("Alma")
+    elif image.startswith("alpine"):
+        assert stdout[-1].startswith("Alpine")
+    elif image.startswith("archlinux"):
+        assert stdout[-1].startswith("Arch")
+    elif image.startswith("debian"):
+        assert stdout[-1].startswith("Debian")
+    elif image.startswith("fedora"):
+        assert stdout[-1].startswith("Fedora")
+    elif image.startswith("opensuse"):
+        assert stdout[-1].startswith("openSUSE")
+    elif image.startswith("rockylinux"):
+        assert stdout[-1].startswith("Rocky")
+    elif image.startswith("ubuntu"):
+        assert stdout[-1].startswith("Ubuntu")
+    else:
+        raise ValueError("Unknown container image")
