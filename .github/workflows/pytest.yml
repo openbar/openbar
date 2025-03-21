@@ -23,5 +23,9 @@ jobs:
       run: |
         pip3 install -r tests/requirements.txt
 
+    - name: Disable apparmor user namespace restrictions
+      run: |
+        sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+
     - name: Run pytest
       run: pytest --log-cli-level=DEBUG
