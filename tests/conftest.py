@@ -1,5 +1,6 @@
 import logging
 import os
+import re
 from pathlib import Path
 from shlex import quote
 from textwrap import dedent
@@ -78,6 +79,38 @@ def _container_engine_guard(request, available_container_engines):
         pytest.skip(f"The container engine '{engine}' is not available")
     elif options and engine not in options:
         pytest.skip(f"The container engine '{engine}' is not enabled")
+
+
+@pytest.hookimpl
+def pytest_runtest_setup(item):
+    matches = re.match(
+        r"(?P<module>.+_test\.py)(?P<specifiers>(?:::[^:\[]+)*)(?:\[(?P<parameters>[^\]]+)\])?",
+        item.nodeid,
+    )
+
+    def to_snake_case(s):
+        return re.sub(
+            r"(^_|_$)",
+            "",
+            re.sub(r"[^a-z0-9]+", "_", re.sub(r"(?<!^)(?=[A-Z])", "_", s).lower()),
+        )
+
+    module = Path(matches["module"])
+    specifiers = to_snake_case("_".join(matches["specifiers"].split("::")[1:]))
+    parameters = to_snake_case(matches["parameters"] or "")
+
+    log_file = item.config.rootpath / "logs" / module.stem / specifiers
+
+    if parameters:
+        log_file /= parameters
+
+    log_file = log_file.with_suffix(".log")
+
+    log_file.parent.mkdir(parents=True, exist_ok=True)
+
+    logging_plugin = item.config.pluginmanager.get_plugin("logging-plugin")
+    if logging_plugin:
+        logging_plugin.set_log_path(log_file)
 
 
 class ProjectDirectories(NamedTuple):
