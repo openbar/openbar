@@ -9,6 +9,7 @@ from . import iter_containers
 logger = logging.getLogger(__name__)
 
 
+@pytest.hookimpl
 def pytest_generate_tests(metafunc):
     metafunc.parametrize(
         "container", iter_containers(metafunc.config.rootpath, only_file=True)
