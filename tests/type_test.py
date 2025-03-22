@@ -7,6 +7,7 @@ from . import iter_containers
 logger = logging.getLogger(__name__)
 
 
+@pytest.hookimpl
 def pytest_generate_tests(metafunc):
     if metafunc.cls is TestSimple:
         metafunc.parametrize(

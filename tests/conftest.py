@@ -40,6 +40,7 @@ def available_container_engines():
     return engines
 
 
+@pytest.hookimpl
 def pytest_addoption(parser):
     group = parser.getgroup("container engines")
     for engine in CONTAINER_ENGINES:
@@ -50,6 +51,7 @@ def pytest_addoption(parser):
         )
 
 
+@pytest.hookimpl
 def pytest_generate_tests(metafunc):
     all_markers = [m.name for m in metafunc.definition.iter_markers()]
     markers = [m for m in all_markers if m in CONTAINER_ENGINES]
