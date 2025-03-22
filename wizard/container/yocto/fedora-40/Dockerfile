@@ -1,6 +1,6 @@
 FROM	docker.io/fedora:40
 
-ENV	LANG en_US.utf8
+ENV	LANG=en_US.utf8
 
 RUN	set -x \
 	&& dnf install --assumeyes \

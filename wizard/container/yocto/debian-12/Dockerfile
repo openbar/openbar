@@ -1,6 +1,6 @@
 FROM	docker.io/debian:12-slim
 
-ENV	LANG en_US.utf8
+ENV	LANG=en_US.utf8
 
 RUN	set -x \
 	&& apt update \

@@ -1,6 +1,6 @@
 FROM	docker.io/rockylinux:9-minimal
 
-ENV	LANG en_US.utf8
+ENV	LANG=en_US.utf8
 
 RUN	set -x \
 	&& microdnf install --assumeyes \

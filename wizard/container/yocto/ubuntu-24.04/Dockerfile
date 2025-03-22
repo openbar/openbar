@@ -1,6 +1,6 @@
 FROM	docker.io/ubuntu:24.04
 
-ENV	LANG en_US.utf8
+ENV	LANG=en_US.utf8
 
 RUN	set -x \
 	&& apt update \
