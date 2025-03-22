@@ -25,6 +25,11 @@ include ${OPENBAR_DIR}/includes/container.mk
 # The "docker build" command line.
 CONTAINER_BUILD := docker build
 CONTAINER_BUILD += ${CONTAINER_BUILD_ARGS}
+
+ifneq (${OB_VERBOSE},0)
+  CONTAINER_BUILD += --progress plain
+endif
+
 CONTAINER_BUILD += ${OB_DOCKER_BUILD_EXTRA_ARGS}
 CONTAINER_BUILD += ${OB_CONTAINER_CONTEXT}
 
