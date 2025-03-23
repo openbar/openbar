@@ -66,35 +66,42 @@ def test_verbose(create_project):
     def check_container_run(data):
         return data.startswith(f"{project.container_engine} run")
 
+    stdout_linenb_quiet = 2
+
     stdout = project.make("foo")
     commands = expand_commands(stdout)
     assert not any(map(check_container_build, commands))
     assert not any(map(check_container_run, commands))
     assert "echo Foo" not in stdout
+    assert len(stdout) == stdout_linenb_quiet
 
     stdout = project.make("foo", cli={"V": 0})
     commands = expand_commands(stdout)
     assert not any(map(check_container_build, commands))
     assert not any(map(check_container_run, commands))
     assert "echo Foo" not in stdout
+    assert len(stdout) == stdout_linenb_quiet
 
     stdout = project.make("foo", cli={"V": 1})
     commands = expand_commands(stdout)
     assert any(map(check_container_build, commands))
     assert any(map(check_container_run, commands))
     assert "echo Foo" in stdout
+    assert len(stdout) > stdout_linenb_quiet
 
     stdout = project.make("foo", env={"OB_VERBOSE": 0})
     commands = expand_commands(stdout)
     assert not any(map(check_container_build, commands))
     assert not any(map(check_container_run, commands))
     assert "echo Foo" not in stdout
+    assert len(stdout) == stdout_linenb_quiet
 
     stdout = project.make("foo", env={"OB_VERBOSE": 1})
     commands = expand_commands(stdout)
     assert any(map(check_container_build, commands))
     assert any(map(check_container_run, commands))
     assert "echo Foo" in stdout
+    assert len(stdout) > stdout_linenb_quiet
 
 
 def test_build_dir(create_project):
