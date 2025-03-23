@@ -1,0 +1,3 @@
+override OB_EXPORT += TEST_VAR
+
+include ${OB_DEFCONFIG_DIR}/base_defconfig

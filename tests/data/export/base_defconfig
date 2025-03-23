@@ -1,0 +1,8 @@
+build:
+ifdef TEST_VAR
+	echo defined
+else
+	echo undefined
+endif
+	echo ${TEST_VAR}
+	echo $${TEST_VAR}

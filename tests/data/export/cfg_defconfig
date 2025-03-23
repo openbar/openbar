@@ -1,0 +1,3 @@
+TEST_VAR = cfg
+
+include ${OB_DEFCONFIG_DIR}/base_defconfig

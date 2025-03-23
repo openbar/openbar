@@ -1,0 +1,3 @@
+override TEST_VAR = reset
+
+include ${OB_DEFCONFIG_DIR}/base_defconfig

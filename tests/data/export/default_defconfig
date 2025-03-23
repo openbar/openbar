@@ -1,0 +1,3 @@
+TEST_VAR ?= default
+
+include ${OB_DEFCONFIG_DIR}/base_defconfig
