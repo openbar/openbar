@@ -10,17 +10,36 @@ container-volume = $(shell echo ${1} | awk -f ${OPENBAR_DIR}/scripts/container-v
 # Get the host directory from a container volume string.
 container-volume-hostdir = $(firstword $(subst ${COLON},${SPACE},${1}))
 
+# Select container command
+ifeq (${OB_CONTAINER_DIR},)
+  CONTAINER_COMMAND := pull
+else ifneq (${OB_CONTAINER_IMAGE},)
+  CONTAINER_COMMAND := pull
+else
+  CONTAINER_COMMAND := build
+endif
+
 # The default container configuration.
-OB_CONTAINER          ?= default
-OB_CONTAINER_FILENAME ?= Dockerfile
-OB_CONTAINER_CONTEXT  ?= ${OB_CONTAINER_DIR}/${OB_CONTAINER}
-OB_CONTAINER_FILE     ?= ${OB_CONTAINER_CONTEXT}/${OB_CONTAINER_FILENAME}
+ifeq (${CONTAINER_COMMAND},pull)
+  OB_CONTAINER_IMAGE    ?= ghcr.io/openbar/openbar:latest
+else
+  OB_CONTAINER          ?= default
+  OB_CONTAINER_FILENAME ?= Dockerfile
+  OB_CONTAINER_CONTEXT  ?= ${OB_CONTAINER_DIR}/${OB_CONTAINER}
+  OB_CONTAINER_FILE     ?= ${OB_CONTAINER_CONTEXT}/${OB_CONTAINER_FILENAME}
+endif
 
 # The generated container variables.
-CONTAINER_PROJECT     := $(call container-sanitize,$(notdir ${OB_ROOT_DIR}))
-CONTAINER_IMAGE       := ${CONTAINER_PROJECT}/$(call container-sanitize,${OB_CONTAINER})
-CONTAINER_TAG         := ${CONTAINER_IMAGE}:$(call container-sanitize,${USER})
-CONTAINER_HOSTNAME    := $(subst /,-,${CONTAINER_IMAGE})
+ifeq (${CONTAINER_COMMAND},pull)
+  CONTAINER_TAG         := ${OB_CONTAINER_IMAGE}
+  CONTAINER_IMAGE       := $(firstword $(subst :,${SPACE},${OB_CONTAINER_IMAGE}))
+  CONTAINER_HOSTNAME    := $(subst /,-,${CONTAINER_IMAGE})
+else
+  CONTAINER_PROJECT     := $(call container-sanitize,$(notdir ${OB_ROOT_DIR}))
+  CONTAINER_IMAGE       := ${CONTAINER_PROJECT}/$(call container-sanitize,${OB_CONTAINER})
+  CONTAINER_TAG         := ${CONTAINER_IMAGE}:$(call container-sanitize,${USER})
+  CONTAINER_HOSTNAME    := $(subst /,-,${CONTAINER_IMAGE})
+endif
 
 # Add all exported variables inside the container.
 CONTAINER_ENV_ARGS :=
@@ -55,6 +74,13 @@ $(call foreach-eval,${OB_CONTAINER_VOLUMES},container-volume-args)
 # the owner is not root.
 ${CONTAINER_VOLUME_HOSTDIRS}:
 	mkdir -p $@
+
+# Container pull default arguments.
+CONTAINER_PULL_ARGS :=
+
+ifeq (${OB_VERBOSE},0)
+  CONTAINER_PULL_ARGS += --quiet
+endif
 
 # Container build default arguments.
 CONTAINER_BUILD_ARGS := -t ${CONTAINER_TAG}
@@ -120,8 +146,19 @@ else
 endif
 
 .PHONY: .forward
-.forward: .container-build | ${CONTAINER_VOLUME_HOSTDIRS}
+.forward: | ${CONTAINER_VOLUME_HOSTDIRS}
 	${CONTAINER_RUN} $(call submake_noenv,${NEXT_LAYER})
+
+ifeq (${CONTAINER_COMMAND},pull)
+  .forward: .container-pull
+else
+  .forward: .container-build
+endif
+
+.PHONY: .container-pull
+.container-pull:
+	@echo "Pulling ${OB_CONTAINER_ENGINE} image '${CONTAINER_TAG}'"
+	${QUIET} ${CONTAINER_PULL}
 
 .PHONY: .container-build
 .container-build:

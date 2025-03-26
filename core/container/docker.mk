@@ -22,6 +22,12 @@ endif
 # Include the common container makefile.
 include ${OPENBAR_DIR}/includes/container.mk
 
+# The "docker pull" command line.
+CONTAINER_PULL := docker pull
+CONTAINER_PULL += ${CONTAINER_PULL_ARGS}
+CONTAINER_PULL += ${OB_DOCKER_PULL_EXTRA_ARGS}
+CONTAINER_PULL += ${CONTAINER_TAG}
+
 # The "docker build" command line.
 CONTAINER_BUILD := docker build
 CONTAINER_BUILD += ${CONTAINER_BUILD_ARGS}

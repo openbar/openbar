@@ -22,6 +22,12 @@ endif
 # Include the common container makefile.
 include ${OPENBAR_DIR}/includes/container.mk
 
+# The "podman pull" command line.
+CONTAINER_PULL := podman pull
+CONTAINER_PULL += ${CONTAINER_PULL_ARGS}
+CONTAINER_PULL += ${OB_PODMAN_PULL_EXTRA_ARGS}
+CONTAINER_PULL += ${CONTAINER_TAG}
+
 # The "podman build" command line.
 CONTAINER_BUILD := podman build
 CONTAINER_BUILD += ${CONTAINER_BUILD_ARGS}
