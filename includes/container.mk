@@ -15,6 +15,7 @@ OB_CONTAINER          ?= default
 OB_CONTAINER_FILENAME ?= Dockerfile
 OB_CONTAINER_CONTEXT  ?= ${OB_CONTAINER_DIR}/${OB_CONTAINER}
 OB_CONTAINER_FILE     ?= ${OB_CONTAINER_CONTEXT}/${OB_CONTAINER_FILENAME}
+OB_CONTAINER_POLICY   ?= missing
 
 # The generated container variables.
 CONTAINER_PROJECT     := $(call container-sanitize,$(notdir ${OB_ROOT_DIR}))
@@ -109,21 +110,3 @@ CONTAINER_RUN_ARGS += ${CONTAINER_ENV_ARGS}
 
 # Add optional extra arguments.
 CONTAINER_RUN_ARGS += ${OB_CONTAINER_RUN_EXTRA_ARGS}
-
-# All targets are forwarded to the next layer inside the container.
-${OB_ALL_TARGETS}: .forward
-
-ifeq (${OB_TYPE},simple)
-  NEXT_LAYER := type/simple.mk
-else
-  NEXT_LAYER := type/initenv.mk
-endif
-
-.PHONY: .forward
-.forward: .container-build | ${CONTAINER_VOLUME_HOSTDIRS}
-	${CONTAINER_RUN} $(call submake_noenv,${NEXT_LAYER})
-
-.PHONY: .container-build
-.container-build:
-	@echo "Building ${OB_CONTAINER_ENGINE} image '${CONTAINER_TAG}'"
-	${QUIET} ${CONTAINER_BUILD}

@@ -13,6 +13,11 @@ OPENBAR_DIR := $(realpath $(dir $(lastword ${MAKEFILE_LIST}))/..)
 # The base directory where the root makefile is located.
 OB_ROOT_DIR := ${CURDIR}
 
+# Support the B= option in command line.
+ifeq ($(origin B),command line)
+  OB_CONTAINER_FORCE_BUILD := $(B)
+endif
+
 # Support the O= option in command line.
 ifeq ($(origin O),command line)
   OB_BUILD_DIR := $(abspath ${O})
@@ -32,10 +37,10 @@ OB_VERBOSE ?= 0
 # The container engine to be used.
 OB_CONTAINER_ENGINE ?= podman
 
-# Add all command line variables except O and V to the export list.
+# Add all command line variables except B, O and V to the export list.
 CLI_VARIABLES = $(foreach variable,${.VARIABLES},$(if $(filter command line,$(origin ${variable})),${variable}))
 
-override OB_EXPORT += $(filter-out O V,${CLI_VARIABLES})
+override OB_EXPORT += $(filter-out B O V,${CLI_VARIABLES})
 
 # All the required variables have been set.
 include ${OPENBAR_DIR}/includes/verify-environment.mk
@@ -147,3 +152,5 @@ endif
 	@echo '  make V=0-1 [targets] 0 => quiet build (default)'
 	@echo '                       1 => verbose build'
 	@echo '  make O=dir [targets] Use the specified build directory (default: build)'
+	@echo '  make B=0-1 [targets] 0 => force container not to be built'
+	@echo '                       1 => force container to be built'
