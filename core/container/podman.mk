@@ -22,6 +22,9 @@ endif
 # Include the common container makefile.
 include ${OPENBAR_DIR}/includes/container.mk
 
+# The "podman exists" command line.
+CONTAINER_EXISTS := podman image exists ${CONTAINER_TAG}
+
 # The "podman build" command line.
 CONTAINER_BUILD := podman build
 CONTAINER_BUILD += ${CONTAINER_BUILD_ARGS}
@@ -51,3 +54,6 @@ CONTAINER_RUN += ${OB_PODMAN_RUN_EXTRA_ARGS}
 
 # Use the previously build image.
 CONTAINER_RUN += ${CONTAINER_TAG}
+
+# Forward to the type layer.
+include ${OPENBAR_DIR}/includes/container_forward.mk

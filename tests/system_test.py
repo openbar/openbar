@@ -75,9 +75,7 @@ def test_project_fixture(create_project):
 
 
 def test_hello(create_project):
-    project = create_project(
-        defconfig="hello_defconfig",
-    )
+    project = create_project(defconfig="hello_defconfig", cli={"B": "1"})
 
     stdout = project.make()
 
