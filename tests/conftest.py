@@ -254,8 +254,15 @@ def create_project(request, tmp_path, project_default_kwargs, project_dirs):
     engine = request.getfixturevalue("container_engine")
 
     def _create_project(**kwargs):
+        if "root_dir" in kwargs:
+            root_dir = kwargs.pop("root_dir")
+        elif "root_dir" in project_default_kwargs:
+            root_dir = project_default_kwargs.pop("root_dir")
+        else:
+            root_dir = tmp_path
+
         return Project(
-            root_dir=tmp_path,
+            root_dir=root_dir,
             project_dirs=project_dirs,
             container_engine=engine,
             **project_default_kwargs,
