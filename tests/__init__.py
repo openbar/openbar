@@ -1,5 +1,19 @@
 import os
+import re
 from pathlib import Path
+
+
+def container_tag(directory, container="default"):
+    def sanitize(string):
+        string = re.sub(r"(^[^a-z\d]|[^a-z\d]$)", "", str(string).lower())
+        string = re.sub(r"[^a-z\d-]", ".", string.replace("_", "-"))
+        return string[:128]
+
+    project = sanitize(directory.name)
+    image = f"{project}/{sanitize(container)}"
+    tag = f"{image}:{sanitize(os.environ['USER'])}"
+
+    return tag
 
 
 def iter_containers(rootpath, only_file=None, startswith=None):
