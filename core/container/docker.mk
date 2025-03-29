@@ -22,6 +22,9 @@ endif
 # Include the common container makefile.
 include ${OPENBAR_DIR}/includes/container.mk
 
+# The "docker exists" command line.
+CONTAINER_EXISTS := docker inspect ${CONTAINER_TAG} >/dev/null 2>&1
+
 # The "docker build" command line.
 CONTAINER_BUILD := docker build
 CONTAINER_BUILD += ${CONTAINER_BUILD_ARGS}
@@ -54,3 +57,6 @@ CONTAINER_RUN += ${OB_DOCKER_RUN_EXTRA_ARGS}
 
 # Use the previously build image.
 CONTAINER_RUN += ${CONTAINER_TAG}
+
+# Forward to the type layer.
+include ${OPENBAR_DIR}/includes/container_forward.mk

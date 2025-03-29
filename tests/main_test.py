@@ -44,13 +44,13 @@ def test_defconfig(create_project):
 def test_all(create_project):
     project = create_project(defconfig="main_defconfig")
     stdout = project.make("all")
-    assert stdout[1:] == ["Foo", "Bar"]
+    assert stdout[-2:] == ["Foo", "Bar"]
     stdout = project.make()
-    assert stdout[1:] == ["Foo", "Bar"]
+    assert stdout[-2:] == ["Foo", "Bar"]
 
 
 def test_verbose(create_project):
-    project = create_project(defconfig="main_defconfig")
+    project = create_project(defconfig="main_defconfig", cli={"B": "1"})
 
     def expand_commands(commands):
         for maybe_command in commands:
@@ -125,7 +125,9 @@ def test_build_dir(create_project):
 
 
 def test_foreach(project_dirs, create_project):
-    project = create_project(defconfig_dir=project_dirs.tests_data_dir / "foreach")
+    project = create_project(
+        defconfig_dir=project_dirs.tests_data_dir / "foreach", cli={"B": "1"}
+    )
     stdout = project.make("foreach")
     for index, name in enumerate(["bar", "baz", "foo"]):
         assert stdout[3 * index + 0] == f"Build configured for {name}_defconfig"
