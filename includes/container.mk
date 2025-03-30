@@ -6,17 +6,36 @@ container-volume = $(shell echo ${1} | awk -f ${OPENBAR_DIR}/scripts/container-v
 # Get the host directory from a container volume string.
 container-volume-hostdir = $(firstword $(subst ${COLON},${SPACE},${1}))
 
+# Choose whether to build or pull the container.
+ifeq (${OB_CONTAINER_DIR},)
+  CONTAINER_COMMAND := pull
+else ifeq (${OB_CONTAINER_IMAGE},)
+  CONTAINER_COMMAND := build
+else
+  CONTAINER_COMMAND := pull
+endif
+
 # The default container configuration.
-OB_CONTAINER          ?= default
-OB_CONTAINER_FILENAME ?= Dockerfile
-OB_CONTAINER_CONTEXT  ?= ${OB_CONTAINER_DIR}/${OB_CONTAINER}
-OB_CONTAINER_FILE     ?= ${OB_CONTAINER_CONTEXT}/${OB_CONTAINER_FILENAME}
-OB_CONTAINER_POLICY   ?= missing
+OB_CONTAINER_POLICY     ?= missing
+ifeq (${CONTAINER_COMMAND},pull)
+  OB_CONTAINER_IMAGE    ?= ghcr.io/openbar/openbar:latest
+else
+  OB_CONTAINER          ?= default
+  OB_CONTAINER_FILENAME ?= Dockerfile
+  OB_CONTAINER_CONTEXT  ?= ${OB_CONTAINER_DIR}/${OB_CONTAINER}
+  OB_CONTAINER_FILE     ?= ${OB_CONTAINER_CONTEXT}/${OB_CONTAINER_FILENAME}
+endif
 
 # The generated container variables.
-CONTAINER_SHA1        := $(firstword $(shell sha1sum ${OB_CONTAINER_FILE}))
-CONTAINER_TAG         := openbar/${CONTAINER_SHA1}:latest
-CONTAINER_HOSTNAME    := $(subst /,-,${OB_CONTAINER})
+ifeq (${CONTAINER_COMMAND},pull)
+  CONTAINER_TAG         := ${OB_CONTAINER_IMAGE}
+  CONTAINER_IMAGE       := $(firstword $(subst :,${SPACE},${CONTAINER_TAG}))
+  CONTAINER_HOSTNAME    := $(subst /,-,${CONTAINER_IMAGE})
+else
+  CONTAINER_SHA1        := $(firstword $(shell sha1sum ${OB_CONTAINER_FILE}))
+  CONTAINER_TAG         := openbar/${CONTAINER_SHA1}:latest
+  CONTAINER_HOSTNAME    := $(subst /,-,${OB_CONTAINER})
+endif
 
 # Add all exported variables inside the container.
 CONTAINER_ENV_ARGS :=
@@ -62,10 +81,20 @@ endif
 
 CONTAINER_BUILD_ARGS += ${OB_CONTAINER_BUILD_EXTRA_ARGS}
 
+# Container pull default arguments.
+CONTAINER_PULL_ARGS :=
+
+ifeq (${OB_VERBOSE},0)
+  CONTAINER_PULL_ARGS += --quiet
+endif
+
 # Container run default arguments.
 CONTAINER_RUN_ARGS := --rm			# Never save the running container.
 CONTAINER_RUN_ARGS += --log-driver=none		# Disables any logging for the container.
 CONTAINER_RUN_ARGS += --privileged		# Allow access to devices.
+
+# Never pull when running.
+CONTAINER_RUN_ARGS += --pull never
 
 # Allow to run interactive commands.
 ifeq ($(shell tty >/dev/null && echo interactive),interactive)

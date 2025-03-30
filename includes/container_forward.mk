@@ -16,14 +16,33 @@ endif
 	@echo "Building ${OB_CONTAINER_ENGINE} image '${CONTAINER_TAG}'"
 	${QUIET} ${CONTAINER_BUILD}
 
-ifdef OB_CONTAINER_FORCE_BUILD
-  ifneq (${OB_CONTAINER_FORCE_BUILD},0)
+.PHONY: .container-pull
+.container-pull:
+	@echo "Pulling ${OB_CONTAINER_ENGINE} image '${CONTAINER_TAG}'"
+	${QUIET} ${CONTAINER_PULL}
+
+ifeq (${CONTAINER_COMMAND},pull)
+  ifdef OB_CONTAINER_FORCE_PULL
+    ifneq (${OB_CONTAINER_FORCE_PULL},0)
+      .forward: .container-pull
+    endif
+  else ifeq (${OB_CONTAINER_POLICY},missing)
+    ifneq ($(shell ${CONTAINER_EXISTS} && echo exists),exists)
+      .forward: .container-pull
+    endif
+  else ifneq (${OB_CONTAINER_POLICY},never)
+    .forward: .container-pull
+  endif
+else
+  ifdef OB_CONTAINER_FORCE_BUILD
+    ifneq (${OB_CONTAINER_FORCE_BUILD},0)
+      .forward: .container-build
+    endif
+  else ifeq (${OB_CONTAINER_POLICY},missing)
+    ifneq ($(shell ${CONTAINER_EXISTS} && echo exists),exists)
+      .forward: .container-build
+    endif
+  else ifneq (${OB_CONTAINER_POLICY},never)
     .forward: .container-build
   endif
-else ifeq (${OB_CONTAINER_POLICY},missing)
-  ifneq ($(shell ${CONTAINER_EXISTS} && echo exists),exists)
-    .forward: .container-build
-  endif
-else ifneq (${OB_CONTAINER_POLICY},never)
-  .forward: .container-build
 endif
