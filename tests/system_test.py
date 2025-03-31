@@ -3,6 +3,8 @@ import logging
 import pytest
 import sh
 
+from . import check_container_build
+
 logger = logging.getLogger(__name__)
 
 
@@ -79,5 +81,5 @@ def test_hello(create_project):
 
     stdout = project.make()
 
-    assert stdout[0].startswith(f"Building {project.container_engine} image")
+    check_container_build(project, stdout[0], "default")
     assert stdout[1] == "Hello"

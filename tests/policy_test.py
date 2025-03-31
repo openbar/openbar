@@ -3,55 +3,43 @@ import logging
 import pytest
 import sh
 
-from . import container_tag
+from . import check_container_build
+from . import container_rm
+from . import get_container_tag
 
 logger = logging.getLogger(__name__)
 
 
-@pytest.fixture
-def project_default_kwargs(project_dirs, request):
-    function = request.function.__name__
-    root_dir = project_dirs.session_dir / f"policy_{function}"
-    return {"root_dir": root_dir}
-
-
 @pytest.mark.parametrize(
-    ("project_kwargs", "container_delete", "build_success", "container_build"),
+    ("initial_container", "project_kwargs", "container_build"),
     [
-        # Without config and without image, the container is built
-        ({}, True, True, True),
-        # Without config and with image, the container is not built
-        ({}, False, True, False),
-        # With B=0 and with image, the container is not built
-        ({"cli": {"B": "0"}}, False, True, False),
-        # With B=0 and without image, the container is not built
-        ({"cli": {"B": "0"}}, True, False, None),
-        # With B=1 and without image, the container is built
-        ({"cli": {"B": "1"}}, True, True, True),
-        # With B=1 and with image, the container is built
-        ({"cli": {"B": "1"}}, False, True, True),
-        # With FORCE_BUILD=0 and with image, the container is not built
-        ({"env": {"OB_CONTAINER_FORCE_BUILD": "0"}}, False, True, False),
-        # With FORCE_BUILD=0 and without image, the container is not built
-        ({"env": {"OB_CONTAINER_FORCE_BUILD": "0"}}, True, False, None),
-        # With FORCE_BUILD=1 and without image, the container is built
-        ({"env": {"OB_CONTAINER_FORCE_BUILD": "1"}}, True, True, True),
-        # With FORCE_BUILD=1 and with image, the container is built
-        ({"env": {"OB_CONTAINER_FORCE_BUILD": "1"}}, False, True, True),
-        # With POLICY=always and with image, the container is built
-        ({"env": {"OB_CONTAINER_POLICY": "always"}}, False, True, True),
-        # With POLICY=always and without image, the container is built
-        ({"env": {"OB_CONTAINER_POLICY": "always"}}, True, True, True),
-        # With POLICY=missing and with image, the container is not built
-        ({"env": {"OB_CONTAINER_POLICY": "missing"}}, False, True, False),
-        # With POLICY=missing and without image, the container is built
-        ({"env": {"OB_CONTAINER_POLICY": "missing"}}, True, True, True),
-        # With POLICY=never and with image, the container is not built
-        ({"env": {"OB_CONTAINER_POLICY": "never"}}, False, True, False),
-        # With POLICY=never and without image, the container is not built
-        ({"env": {"OB_CONTAINER_POLICY": "never"}}, True, False, None),
-        # With POLICY=never, FORCE_BUILD=0 but with B=1, the container is built
+        # With default configuration, the container is built if an image exists
+        (False, {}, True),
+        (True, {}, False),
+        # With B=1, the container is always built
+        (False, {"cli": {"B": "1"}}, True),
+        (True, {"cli": {"B": "1"}}, True),
+        # With B=0, the container is never built
+        (False, {"cli": {"B": "0"}}, None),
+        (True, {"cli": {"B": "0"}}, False),
+        # With FORCE_BUILD=1, the container is always built
+        (False, {"env": {"OB_CONTAINER_FORCE_BUILD": "1"}}, True),
+        (True, {"env": {"OB_CONTAINER_FORCE_BUILD": "1"}}, True),
+        # With FORCE_BUILD=0, the container is never built
+        (False, {"env": {"OB_CONTAINER_FORCE_BUILD": "0"}}, None),
+        (True, {"env": {"OB_CONTAINER_FORCE_BUILD": "0"}}, False),
+        # With POLICY=always, the container is always built
+        (False, {"env": {"OB_CONTAINER_POLICY": "always"}}, True),
+        (True, {"env": {"OB_CONTAINER_POLICY": "always"}}, True),
+        # With POLICY=missing, the container is built if an image exists
+        (False, {"env": {"OB_CONTAINER_POLICY": "missing"}}, True),
+        (True, {"env": {"OB_CONTAINER_POLICY": "missing"}}, False),
+        # With POLICY=never, the container is never built
+        (False, {"env": {"OB_CONTAINER_POLICY": "never"}}, None),
+        (True, {"env": {"OB_CONTAINER_POLICY": "never"}}, False),
+        # B has priority over FORCE_BUILD and POLICY
         (
+            False,
             {
                 "env": {
                     "OB_CONTAINER_POLICY": "never",
@@ -60,11 +48,31 @@ def project_default_kwargs(project_dirs, request):
                 "cli": {"B": "1"},
             },
             True,
+        ),
+        (
+            False,
+            {
+                "env": {
+                    "OB_CONTAINER_POLICY": "always",
+                    "OB_CONTAINER_FORCE_BUILD": "1",
+                },
+                "cli": {"B": "0"},
+            },
+            None,
+        ),
+        (
             True,
+            {
+                "env": {
+                    "OB_CONTAINER_POLICY": "never",
+                    "OB_CONTAINER_FORCE_BUILD": "0",
+                },
+                "cli": {"B": "1"},
+            },
             True,
         ),
-        # With POLICY=always, FORCE_BUILD=1 but with B=0, the container is not built
         (
+            True,
             {
                 "env": {
                     "OB_CONTAINER_POLICY": "always",
@@ -73,52 +81,90 @@ def project_default_kwargs(project_dirs, request):
                 "cli": {"B": "0"},
             },
             False,
-            True,
-            False,
         ),
-        # With POLICY=never but FORCE_BUILD=1, the container is built
+        # FORCE_BUILD has priority over POLICY
         (
-            {
-                "env": {
-                    "OB_CONTAINER_POLICY": "never",
-                    "OB_CONTAINER_FORCE_BUILD": "1",
-                }
-            },
-            True,
-            True,
+            False,
+            {"env": {"OB_CONTAINER_POLICY": "never", "OB_CONTAINER_FORCE_BUILD": "1"}},
             True,
         ),
-        # With POLICY=always, but FORCE_BUILD=0, the container is not built
         (
-            {
-                "env": {
-                    "OB_CONTAINER_POLICY": "always",
-                    "OB_CONTAINER_FORCE_BUILD": "0",
-                }
-            },
             False,
+            {"env": {"OB_CONTAINER_POLICY": "always", "OB_CONTAINER_FORCE_BUILD": "0"}},
+            None,
+        ),
+        (
             True,
+            {"env": {"OB_CONTAINER_POLICY": "never", "OB_CONTAINER_FORCE_BUILD": "1"}},
+            True,
+        ),
+        (
+            True,
+            {"env": {"OB_CONTAINER_POLICY": "always", "OB_CONTAINER_FORCE_BUILD": "0"}},
             False,
         ),
     ],
 )
-def test_build(
-    create_project, project_kwargs, container_delete, build_success, container_build
-):
-    project = create_project(defconfig="hello_defconfig", **project_kwargs)
-    tag = container_tag(project.container_dir)
+def test_build(create_project, initial_container, project_kwargs, container_build):
+    project = create_project(defconfig="hello_defconfig")
+    container_tag = get_container_tag(project.container_dir, "default")
 
-    if container_delete:
-        logger.debug(f"Deleting container image '{tag}'")
-        engine = sh.Command(project.container_engine)
-        engine("image", "rm", "-f", tag)
+    if initial_container:
+        project.make(cli={"B": "1"})
+    else:
+        container_rm(project.container_engine, container_tag)
 
-    if build_success:
-        stdout = project.make()
-        if container_build:
-            assert stdout[0] == f"Building {project.container_engine} image '{tag}'"
-        assert stdout[-1] == "Hello"
+    if container_build is None:
+        with pytest.raises(sh.ErrorReturnCode_2):
+            project.make(**project_kwargs)
 
     else:
-        with pytest.raises(sh.ErrorReturnCode_2):
-            project.make()
+        stdout = project.make(**project_kwargs)
+
+        if container_build:
+            check_container_build(project, stdout[0], "default")
+            stdout_length = 2
+        else:
+            stdout_length = 1
+
+        assert len(stdout) == stdout_length
+        assert stdout[-1] == "Hello"
+
+
+def test_build_missing(project_dirs, tmp_path, create_project):
+    container_file_orig = project_dirs.container_dir / "default" / "Dockerfile"
+    container_dir = tmp_path / "container"
+    container_file = container_dir / "default" / "Dockerfile"
+    container_file.parent.mkdir(parents=True, exist_ok=True)
+
+    project = create_project(defconfig="hello_defconfig", container_dir=container_dir)
+
+    def container_orig():
+        container_file.write_text(container_file_orig.read_text())
+
+    def container_update():
+        with open(container_file, "a") as f:
+            f.write("# test comment")
+
+    container_orig()
+    container_rm(project.container_engine, get_container_tag(container_dir, "default"))
+    container_update()
+    container_rm(project.container_engine, get_container_tag(container_dir, "default"))
+    container_orig()
+
+    def check_make(container_build):
+        stdout = project.make()
+
+        if container_build:
+            check_container_build(project, stdout[0], "default")
+            stdout_length = 2
+        else:
+            stdout_length = 1
+
+        assert len(stdout) == stdout_length
+        assert stdout[-1] == "Hello"
+
+    check_make(True)
+    check_make(False)
+    container_update()
+    check_make(True)
