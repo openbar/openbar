@@ -10,25 +10,67 @@ env:
   PY_COLORS: "1"
 
 jobs:
+  define-matrix:
+    runs-on: ubuntu-latest
+
+    outputs:
+      test_sections: ${{ steps.get_test_sections.outputs.test_sections }}
+
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v4.2.2
+
+      - name: Dynamically get available test sections
+        id: get_test_sections
+        shell: python
+        run: |
+          import json
+          import os
+
+          test_sections = []
+
+          for entry in os.listdir("tests"):
+              if entry.endswith("_test.py"):
+                  test_sections.append(entry[:-8])
+
+          with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+              f.write("test_sections=")
+              json.dump(sorted(test_sections), f)
+
   pytest:
     runs-on: ubuntu-latest
+
+    needs: define-matrix
+
+    strategy:
+      matrix:
+        test_section: ${{ fromJSON(needs.define-matrix.outputs.test_sections) }}
+
     steps:
+      - name: Check out the repo
+        uses: actions/checkout@v4.2.2
 
-    - name: Check out the repo
-      uses: actions/checkout@v4.2.2
+      - name: Set up Python
+        uses: actions/setup-python@v5.5.0
+        with:
+          python-version: 3.12
 
-    - name: Set up Python
-      uses: actions/setup-python@v5.5.0
-      with:
-        python-version: 3.12
+      - name: Install dependencies
+        run: |
+          pip3 install -r tests/requirements.txt
 
-    - name: Install dependencies
-      run: |
-        pip3 install -r tests/requirements.txt
+      - name: Disable apparmor user namespace restrictions
+        run: |
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
 
-    - name: Disable apparmor user namespace restrictions
-      run: |
-        sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+      - name: Run pytest
+        run: pytest tests/${{ matrix.test_section }}_test.py
 
-    - name: Run pytest
-      run: pytest --log-cli-level=DEBUG
+      - name: Archive pytest logs
+        if: success() || failure()
+        uses: actions/upload-artifact@v4.6.2
+        with:
+          name: openbar-pytest-${{ matrix.test_section }}-logs
+          path: logs/
+          compression-level: 9
+          retention-days: 7
