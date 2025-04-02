@@ -1,7 +1,3 @@
-## container-sanitize <string>
-# Sanitize a string to be used as a container name or tag.
-container-sanitize = $(shell echo ${1} | awk -f ${OPENBAR_DIR}/scripts/container-sanitize.awk)
-
 ## container-volume <string>
 # Format the volume string to be container compliant.
 container-volume = $(shell echo ${1} | awk -f ${OPENBAR_DIR}/scripts/container-volume.awk)
@@ -18,10 +14,9 @@ OB_CONTAINER_FILE     ?= ${OB_CONTAINER_CONTEXT}/${OB_CONTAINER_FILENAME}
 OB_CONTAINER_POLICY   ?= missing
 
 # The generated container variables.
-CONTAINER_PROJECT     := $(call container-sanitize,$(notdir ${OB_ROOT_DIR}))
-CONTAINER_IMAGE       := ${CONTAINER_PROJECT}/$(call container-sanitize,${OB_CONTAINER})
-CONTAINER_TAG         := ${CONTAINER_IMAGE}:$(call container-sanitize,${USER})
-CONTAINER_HOSTNAME    := $(subst /,-,${CONTAINER_IMAGE})
+CONTAINER_SHA1        := $(firstword $(shell sha1sum ${OB_CONTAINER_FILE}))
+CONTAINER_TAG         := openbar/${CONTAINER_SHA1}:latest
+CONTAINER_HOSTNAME    := $(subst /,-,${OB_CONTAINER})
 
 # Add all exported variables inside the container.
 CONTAINER_ENV_ARGS :=

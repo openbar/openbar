@@ -106,7 +106,7 @@ def test_build(
     create_project, project_kwargs, container_delete, build_success, container_build
 ):
     project = create_project(defconfig="hello_defconfig", **project_kwargs)
-    tag = container_tag(project.root_dir)
+    tag = container_tag(project.container_dir)
 
     if container_delete:
         logger.debug(f"Deleting container image '{tag}'")
