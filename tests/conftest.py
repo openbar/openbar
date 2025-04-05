@@ -171,8 +171,12 @@ class Project:
         data = f"""
             export OB_TYPE          := {self.type}
             export OB_DEFCONFIG_DIR := {self.defconfig_dir}
-            export OB_CONTAINER_DIR := {self.container_dir}
         """
+
+        if self.container_dir is not None:
+            data += f"""
+                export OB_CONTAINER_DIR := {self.container_dir}
+            """
 
         if self.type == "initenv":
             data += f"""
