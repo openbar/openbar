@@ -3,8 +3,6 @@ import logging
 import pytest
 import sh
 
-from . import check_container_build
-
 logger = logging.getLogger(__name__)
 
 
@@ -74,12 +72,3 @@ def test_project_fixture(create_project):
 
     # Make command
     project.make("help")
-
-
-def test_hello(create_project):
-    project = create_project(defconfig="hello_defconfig", cli={"B": "1"})
-
-    stdout = project.make()
-
-    check_container_build(project, stdout[0], "default")
-    assert stdout[1] == "Hello"

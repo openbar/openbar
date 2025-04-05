@@ -1,0 +1,4 @@
+OB_CONTAINER_IMAGE = ghcr.io/openbar/openbar-alpine:latest
+
+hello:
+	echo Hello

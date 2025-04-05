@@ -26,6 +26,10 @@ def check_container_build(project, stdout, container):
     assert stdout == f"Building {project.container_engine} image '{container_tag}'"
 
 
+def check_container_pull(project, stdout, container_tag):
+    assert stdout == f"Pulling {project.container_engine} image '{container_tag}'"
+
+
 def iter_containers(rootpath, only_file=None, startswith=None):
     container_dir = rootpath / "wizard/container"
     for root, _, filenames in os.walk(container_dir, followlinks=True):

@@ -4,6 +4,7 @@ import pytest
 import sh
 
 from . import check_container_build
+from . import check_container_pull
 from . import container_rm
 from . import get_container_tag
 
@@ -168,3 +169,124 @@ def test_build_missing(project_dirs, tmp_path, create_project):
     check_make(False)
     container_update()
     check_make(True)
+
+
+@pytest.mark.parametrize(
+    ("initial_container", "project_kwargs", "container_pull"),
+    [
+        # With default configuration, the container is pulled if an image exists
+        (False, {}, True),
+        (True, {}, False),
+        # With P=1, the container is always pulled
+        (False, {"cli": {"P": "1"}}, True),
+        (True, {"cli": {"P": "1"}}, True),
+        # With P=0, the container is never pulled
+        (False, {"cli": {"P": "0"}}, None),
+        (True, {"cli": {"P": "0"}}, False),
+        # With FORCE_PULL=1, the container is always pulled
+        (False, {"env": {"OB_CONTAINER_FORCE_PULL": "1"}}, True),
+        (True, {"env": {"OB_CONTAINER_FORCE_PULL": "1"}}, True),
+        # With FORCE_PULL=0, the container is never pulled
+        (False, {"env": {"OB_CONTAINER_FORCE_PULL": "0"}}, None),
+        (True, {"env": {"OB_CONTAINER_FORCE_PULL": "0"}}, False),
+        # With POLICY=always, the container is always pulled
+        (False, {"env": {"OB_CONTAINER_POLICY": "always"}}, True),
+        (True, {"env": {"OB_CONTAINER_POLICY": "always"}}, True),
+        # With POLICY=missing, the container is pulled if an image exists
+        (False, {"env": {"OB_CONTAINER_POLICY": "missing"}}, True),
+        (True, {"env": {"OB_CONTAINER_POLICY": "missing"}}, False),
+        # With POLICY=never, the container is never pulled
+        (False, {"env": {"OB_CONTAINER_POLICY": "never"}}, None),
+        (True, {"env": {"OB_CONTAINER_POLICY": "never"}}, False),
+        # P has priority over FORCE_PULL and POLICY
+        (
+            False,
+            {
+                "env": {
+                    "OB_CONTAINER_POLICY": "never",
+                    "OB_CONTAINER_FORCE_PULL": "0",
+                },
+                "cli": {"P": "1"},
+            },
+            True,
+        ),
+        (
+            False,
+            {
+                "env": {
+                    "OB_CONTAINER_POLICY": "always",
+                    "OB_CONTAINER_FORCE_PULL": "1",
+                },
+                "cli": {"P": "0"},
+            },
+            None,
+        ),
+        (
+            True,
+            {
+                "env": {
+                    "OB_CONTAINER_POLICY": "never",
+                    "OB_CONTAINER_FORCE_PULL": "0",
+                },
+                "cli": {"P": "1"},
+            },
+            True,
+        ),
+        (
+            True,
+            {
+                "env": {
+                    "OB_CONTAINER_POLICY": "always",
+                    "OB_CONTAINER_FORCE_PULL": "1",
+                },
+                "cli": {"P": "0"},
+            },
+            False,
+        ),
+        # FORCE_PULL has priority over POLICY
+        (
+            False,
+            {"env": {"OB_CONTAINER_POLICY": "never", "OB_CONTAINER_FORCE_PULL": "1"}},
+            True,
+        ),
+        (
+            False,
+            {"env": {"OB_CONTAINER_POLICY": "always", "OB_CONTAINER_FORCE_PULL": "0"}},
+            None,
+        ),
+        (
+            True,
+            {"env": {"OB_CONTAINER_POLICY": "never", "OB_CONTAINER_FORCE_PULL": "1"}},
+            True,
+        ),
+        (
+            True,
+            {"env": {"OB_CONTAINER_POLICY": "always", "OB_CONTAINER_FORCE_PULL": "0"}},
+            False,
+        ),
+    ],
+)
+def test_pull(create_project, initial_container, project_kwargs, container_pull):
+    project = create_project(defconfig="pull_defconfig")
+    container_tag = "ghcr.io/openbar/openbar-alpine:latest"
+
+    if initial_container:
+        project.make(cli={"P": "1"})
+    else:
+        container_rm(project.container_engine, container_tag)
+
+    if container_pull is None:
+        with pytest.raises(sh.ErrorReturnCode_2):
+            project.make(**project_kwargs)
+
+    else:
+        stdout = project.make(**project_kwargs)
+
+        if container_pull:
+            check_container_pull(project, stdout[0], container_tag)
+            stdout_length = 2
+        else:
+            stdout_length = 1
+
+        assert len(stdout) == stdout_length
+        assert stdout[-1] == "Hello"
