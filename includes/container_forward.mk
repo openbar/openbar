@@ -13,7 +13,7 @@ endif
 
 .PHONY: .container-build
 .container-build:
-	@echo "Building ${OB_CONTAINER_ENGINE} image '${CONTAINER_TAG}'"
+	@echo "Building ${OB_CONTAINER_ENGINE} image '${CONTAINER_TAG:localhost/%=%}'"
 	${QUIET} ${CONTAINER_BUILD}
 
 .PHONY: .container-pull

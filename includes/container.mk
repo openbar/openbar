@@ -33,7 +33,8 @@ ifeq (${CONTAINER_COMMAND},pull)
   CONTAINER_HOSTNAME    := $(subst /,-,${CONTAINER_IMAGE})
 else
   CONTAINER_SHA1        := $(firstword $(shell sha1sum ${OB_CONTAINER_FILE}))
-  CONTAINER_TAG         := openbar/${CONTAINER_SHA1}:latest
+  CONTAINER_ID          := $(lastword $(subst /,${SPACE},${OB_CONTAINER_FILE:%/Dockerfile=%}))
+  CONTAINER_TAG         := localhost/openbar/${OB_PROJECT_ID}/${CONTAINER_ID}:latest
   CONTAINER_HOSTNAME    := $(subst /,-,${OB_CONTAINER})
 endif
 
