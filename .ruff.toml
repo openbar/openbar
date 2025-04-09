@@ -6,3 +6,6 @@ ignore = ["S101", "S108"]
 
 [lint.isort]
 force-single-line = true
+
+[lint.pylint]
+max-args = 7

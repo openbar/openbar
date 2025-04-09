@@ -22,9 +22,6 @@ endif
 # Include the common container makefile.
 include ${OPENBAR_DIR}/includes/container.mk
 
-# The "docker exists" command line.
-CONTAINER_EXISTS := docker inspect ${CONTAINER_TAG} >/dev/null 2>&1
-
 # The "docker build" command line.
 CONTAINER_BUILD := docker build
 CONTAINER_BUILD += ${CONTAINER_BUILD_ARGS}
