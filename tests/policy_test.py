@@ -11,8 +11,39 @@ from . import get_container_tag
 logger = logging.getLogger(__name__)
 
 
+def check_make(project, check_fn, check_stdout, make_kwargs):
+    if check_stdout is None:
+        with pytest.raises(sh.ErrorReturnCode_2):
+            project.make(**make_kwargs)
+    else:
+        stdout = project.make(**make_kwargs)
+
+        if check_stdout:
+            check_fn(stdout[0])
+            stdout_length = 2
+        else:
+            stdout_length = 1
+
+        assert len(stdout) == stdout_length
+        assert stdout[-1] == "Hello"
+
+
+def check_make_build(project, check_stdout, make_kwargs={}):
+    def check_fn(stdout):
+        check_container_build(project, stdout, "default")
+
+    check_make(project, check_fn, check_stdout, make_kwargs)
+
+
+def check_make_pull(project, check_stdout, container_tag, make_kwargs={}):
+    def check_fn(stdout):
+        check_container_pull(project, stdout, container_tag)
+
+    check_make(project, check_fn, check_stdout, make_kwargs)
+
+
 @pytest.mark.parametrize(
-    ("initial_container", "project_kwargs", "container_build"),
+    ("initial_container", "make_kwargs", "check_stdout"),
     [
         # With default configuration, the container is built if an image exists
         (False, {}, True),
@@ -32,6 +63,9 @@ logger = logging.getLogger(__name__)
         # With POLICY=always, the container is always built
         (False, {"env": {"OB_CONTAINER_POLICY": "always"}}, True),
         (True, {"env": {"OB_CONTAINER_POLICY": "always"}}, True),
+        # With POLICY=newer, the container is built if an image exists
+        (False, {"env": {"OB_CONTAINER_POLICY": "newer"}}, True),
+        (True, {"env": {"OB_CONTAINER_POLICY": "newer"}}, False),
         # With POLICY=missing, the container is built if an image exists
         (False, {"env": {"OB_CONTAINER_POLICY": "missing"}}, True),
         (True, {"env": {"OB_CONTAINER_POLICY": "missing"}}, False),
@@ -106,7 +140,7 @@ logger = logging.getLogger(__name__)
         ),
     ],
 )
-def test_build(create_project, initial_container, project_kwargs, container_build):
+def test_build(create_project, initial_container, make_kwargs, check_stdout):
     project = create_project(defconfig="hello_defconfig")
     container_tag = get_container_tag(project.id, "default")
 
@@ -115,65 +149,51 @@ def test_build(create_project, initial_container, project_kwargs, container_buil
     else:
         container_rm(project.container_engine, container_tag)
 
-    if container_build is None:
-        with pytest.raises(sh.ErrorReturnCode_2):
-            project.make(**project_kwargs)
-
-    else:
-        stdout = project.make(**project_kwargs)
-
-        if container_build:
-            check_container_build(project, stdout[0], "default")
-            stdout_length = 2
-        else:
-            stdout_length = 1
-
-        assert len(stdout) == stdout_length
-        assert stdout[-1] == "Hello"
+    check_make_build(project, check_stdout, make_kwargs)
 
 
-@pytest.mark.skip(reason="Temporarily disabled")
-def test_build_missing(project_dirs, tmp_path, create_project):
+@pytest.mark.parametrize(
+    ("project_kwargs", "check_initial", "check_rebuild", "check_after_update"),
+    [
+        ({}, True, False, True),
+        ({"env": {"OB_CONTAINER_POLICY": "always"}}, True, True, True),
+        ({"env": {"OB_CONTAINER_POLICY": "newer"}}, True, False, True),
+        ({"env": {"OB_CONTAINER_POLICY": "missing"}}, True, False, False),
+        ({"env": {"OB_CONTAINER_POLICY": "never"}}, None, None, None),
+    ],
+)
+def test_rebuild(
+    project_dirs,
+    tmp_path,
+    create_project,
+    project_kwargs,
+    check_initial,
+    check_rebuild,
+    check_after_update,
+):
     container_file_orig = project_dirs.container_dir / "default" / "Dockerfile"
     container_dir = tmp_path / "container"
     container_file = container_dir / "default" / "Dockerfile"
     container_file.parent.mkdir(parents=True, exist_ok=True)
 
-    project = create_project(defconfig="hello_defconfig", container_dir=container_dir)
+    project = create_project(
+        defconfig="hello_defconfig", container_dir=container_dir, **project_kwargs
+    )
 
-    def container_orig():
-        container_file.write_text(container_file_orig.read_text())
-
-    def container_update():
-        with open(container_file, "a") as f:
-            f.write("# test comment")
-
-    container_orig()
+    container_file.write_text(container_file_orig.read_text())
     container_rm(project.container_engine, get_container_tag(project.id, "default"))
-    container_update()
-    container_rm(project.container_engine, get_container_tag(project.id, "default"))
-    container_orig()
 
-    def check_make(container_build):
-        stdout = project.make()
+    check_make_build(project, check_initial)
+    check_make_build(project, check_rebuild)
 
-        if container_build:
-            check_container_build(project, stdout[0], "default")
-            stdout_length = 2
-        else:
-            stdout_length = 1
+    with open(container_file, "a") as f:
+        f.write("# test comment")
 
-        assert len(stdout) == stdout_length
-        assert stdout[-1] == "Hello"
-
-    check_make(True)
-    check_make(False)
-    container_update()
-    check_make(True)
+    check_make_build(project, check_after_update)
 
 
 @pytest.mark.parametrize(
-    ("initial_container", "project_kwargs", "container_pull"),
+    ("initial_container", "make_kwargs", "check_stdout"),
     [
         # With default configuration, the container is pulled if an image exists
         (False, {}, True),
@@ -193,6 +213,9 @@ def test_build_missing(project_dirs, tmp_path, create_project):
         # With POLICY=always, the container is always pulled
         (False, {"env": {"OB_CONTAINER_POLICY": "always"}}, True),
         (True, {"env": {"OB_CONTAINER_POLICY": "always"}}, True),
+        # With POLICY=newer, the container is pulled if an image exists
+        (False, {"env": {"OB_CONTAINER_POLICY": "newer"}}, True),
+        (True, {"env": {"OB_CONTAINER_POLICY": "newer"}}, False),
         # With POLICY=missing, the container is pulled if an image exists
         (False, {"env": {"OB_CONTAINER_POLICY": "missing"}}, True),
         (True, {"env": {"OB_CONTAINER_POLICY": "missing"}}, False),
@@ -267,7 +290,7 @@ def test_build_missing(project_dirs, tmp_path, create_project):
         ),
     ],
 )
-def test_pull(create_project, initial_container, project_kwargs, container_pull):
+def test_pull(create_project, initial_container, make_kwargs, check_stdout):
     project = create_project(defconfig="pull_defconfig")
     container_tag = "ghcr.io/openbar/openbar-alpine:latest"
 
@@ -276,18 +299,4 @@ def test_pull(create_project, initial_container, project_kwargs, container_pull)
     else:
         container_rm(project.container_engine, container_tag)
 
-    if container_pull is None:
-        with pytest.raises(sh.ErrorReturnCode_2):
-            project.make(**project_kwargs)
-
-    else:
-        stdout = project.make(**project_kwargs)
-
-        if container_pull:
-            check_container_pull(project, stdout[0], container_tag)
-            stdout_length = 2
-        else:
-            stdout_length = 1
-
-        assert len(stdout) == stdout_length
-        assert stdout[-1] == "Hello"
+    check_make_pull(project, check_stdout, container_tag, make_kwargs)

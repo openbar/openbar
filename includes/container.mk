@@ -6,6 +6,10 @@ container-volume = $(shell echo ${1} | awk -f ${OPENBAR_DIR}/scripts/container-v
 # Get the host directory from a container volume string.
 container-volume-hostdir = $(firstword $(subst ${COLON},${SPACE},${1}))
 
+## container-status [<file>]
+#
+container-status = $(filter-out invalid ${1},$(shell OB_VERBOSE=${OB_VERBOSE} ${OPENBAR_DIR}/scripts/container-status.sh ${OB_CONTAINER_ENGINE} ${CONTAINER_TAG} ${2}))
+
 # Choose whether to build or pull the container.
 ifeq (${OB_CONTAINER_DIR},)
   CONTAINER_COMMAND := pull
@@ -16,7 +20,7 @@ else
 endif
 
 # The default container configuration.
-OB_CONTAINER_POLICY     ?= missing
+OB_CONTAINER_POLICY     ?= newer
 ifeq (${CONTAINER_COMMAND},pull)
   OB_CONTAINER_IMAGE    ?= ghcr.io/openbar/openbar:latest
 else
@@ -79,6 +83,8 @@ CONTAINER_BUILD_ARGS += -f ${OB_CONTAINER_FILE}
 ifeq (${OB_VERBOSE},0)
   CONTAINER_BUILD_ARGS += --quiet
 endif
+
+CONTAINER_BUILD_ARGS += --label io.github.openbar.sha1=${CONTAINER_SHA1}
 
 CONTAINER_BUILD_ARGS += ${OB_CONTAINER_BUILD_EXTRA_ARGS}
 

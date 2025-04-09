@@ -26,8 +26,8 @@ ifeq (${CONTAINER_COMMAND},pull)
     ifneq (${OB_CONTAINER_FORCE_PULL},0)
       .forward: .container-pull
     endif
-  else ifeq (${OB_CONTAINER_POLICY},missing)
-    ifneq ($(shell ${CONTAINER_EXISTS} && echo exists),exists)
+  else ifeq ($(filter-out missing newer,${OB_CONTAINER_POLICY}),)
+    ifeq ($(call container-status,missing newer),)
       .forward: .container-pull
     endif
   else ifneq (${OB_CONTAINER_POLICY},never)
@@ -38,8 +38,12 @@ else
     ifneq (${OB_CONTAINER_FORCE_BUILD},0)
       .forward: .container-build
     endif
+  else ifeq (${OB_CONTAINER_POLICY},newer)
+    ifeq ($(call container-status,missing newer,${OB_CONTAINER_FILE}),)
+      .forward: .container-build
+    endif
   else ifeq (${OB_CONTAINER_POLICY},missing)
-    ifneq ($(shell ${CONTAINER_EXISTS} && echo exists),exists)
+    ifeq ($(call container-status,missing,${OB_CONTAINER_FILE}),)
       .forward: .container-build
     endif
   else ifneq (${OB_CONTAINER_POLICY},never)
