@@ -1,6 +1,10 @@
 # The sub makefiles must ensure that the required variables are available
 # in the environment.
 
+ifndef OB_PROJECT_ID
+  $(error The variable OB_PROJECT_ID must be specified in the environment)
+endif
+
 ifndef OB_TYPE
   $(error The variable OB_TYPE must be specified in the environment)
 else ifneq ($(filter ${OB_TYPE},simple initenv yocto),${OB_TYPE})
