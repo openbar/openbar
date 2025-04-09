@@ -1,4 +1,3 @@
-import hashlib
 import logging
 import os
 from pathlib import Path
@@ -8,21 +7,25 @@ import sh
 logger = logging.getLogger(__name__)
 
 
-def get_container_tag(container_dir, container):
-    container_file = container_dir / container / "Dockerfile"
-    with open(container_file, "rb", buffering=0) as f:
-        container_sha1 = hashlib.file_digest(f, "sha1").hexdigest()
-    return f"openbar/{container_sha1}:latest"
+def get_container_tag(project_id, container_id):
+    return f"localhost/openbar/{project_id}/{container_id}:latest"
+
+
+def clean_container_tag(container_tag):
+    if container_tag.startswith("localhost/"):
+        container_tag = container_tag[10:]
+    return container_tag
 
 
 def container_rm(container_engine, container_tag):
-    logger.debug(f"Deleting {container_engine} image '{container_tag}'")
+    cleaned_container_tag = clean_container_tag(container_tag)
+    logger.debug(f"Deleting {container_engine} image '{cleaned_container_tag}'")
     engine = sh.Command(container_engine)
     engine("image", "rm", "-f", container_tag)
 
 
-def check_container_build(project, stdout, container):
-    container_tag = get_container_tag(project.container_dir, container)
+def check_container_build(project, stdout, container_id):
+    container_tag = clean_container_tag(get_container_tag(project.id, container_id))
     assert stdout == f"Building {project.container_engine} image '{container_tag}'"
 
 
