@@ -142,6 +142,7 @@ def poky_dir(project_dirs):
 class Project:
     def __init__(self, root_dir, project_dirs, **kwargs):
         self.__config = {
+            "id": "test",
             "type": "simple",
             "root_dir": root_dir,
             "openbar_dir": project_dirs.openbar_dir,
@@ -169,6 +170,7 @@ class Project:
 
     def generate_makefile(self):
         data = f"""
+            export OB_PROJECT_ID    := {self.id}
             export OB_TYPE          := {self.type}
             export OB_DEFCONFIG_DIR := {self.defconfig_dir}
         """
