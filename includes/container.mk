@@ -84,6 +84,8 @@ ifeq (${OB_VERBOSE},0)
   CONTAINER_BUILD_ARGS += --quiet
 endif
 
+CONTAINER_BUILD_ARGS += --label io.github.openbar.project_id=${OB_PROJECT_ID}
+CONTAINER_BUILD_ARGS += --label io.github.openbar.container_id=${CONTAINER_ID}
 CONTAINER_BUILD_ARGS += --label io.github.openbar.sha1=${CONTAINER_SHA1}
 
 CONTAINER_BUILD_ARGS += ${OB_CONTAINER_BUILD_EXTRA_ARGS}

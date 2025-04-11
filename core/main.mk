@@ -130,6 +130,12 @@ ${DEFCONFIG_TARGETS}:
 	diff ${OB_DEFCONFIG_DIR}/$@ ${CONFIG} >/dev/null 2>&1 \
 		|| install -m 644 ${OB_DEFCONFIG_DIR}/$@ ${CONFIG}
 
+# The "containerclean" target.
+.PHONY: containerclean
+containerclean:
+	${OB_CONTAINER_ENGINE} system prune -f \
+		--filter label=io.github.openbar.project_id=${OB_PROJECT_ID}
+
 # The "help" target.
 .PHONY: help
 help:
@@ -154,6 +160,7 @@ endif
 	@echo 'Usefull targets:'
 	@echo '  help                 - Display this help'
 	@echo '  foreach [targets]    - Build targets for each configuration'
+	@echo '  containerclean       - Clean all project-related dangling images'
 	@echo
 	@echo 'Command line options:'
 	@echo '  make V=0-1 [targets] 0 => quiet build (default)'
