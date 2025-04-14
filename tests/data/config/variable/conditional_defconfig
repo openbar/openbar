@@ -1,0 +1,4 @@
+TEST_VAR ?= default
+TEST_VAR2 ?= default
+
+include ${OB_DEFCONFIG_DIR}/variable.inc

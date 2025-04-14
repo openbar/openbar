@@ -1,0 +1,6 @@
+VAR = before
+TEST_VAR = ${VAR}
+VAR = after
+TEST_VAR2 = ${VAR}
+
+include ${OB_DEFCONFIG_DIR}/variable.inc
