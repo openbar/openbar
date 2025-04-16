@@ -1,20 +1,20 @@
 import logging
 
 import pytest
-import sh
+
+from . import CommandError
 
 logger = logging.getLogger(__name__)
 
 
 def test_not_configured(create_project):
     project = create_project()
-    with pytest.raises(sh.ErrorReturnCode) as exc:
-        project.make(_return_cmd=True)
-    assert exc.value.stderr.strip().endswith(
-        b"*** Configuration file not found.  Stop."
-    )
-    assert exc.value.stdout.strip().startswith(
-        b"Please use one of the following configuration targets:"
+
+    with pytest.raises(CommandError) as exc:
+        project.make()
+    assert exc.value.stderr[-1].endswith("*** Configuration file not found.  Stop.")
+    assert exc.value.stdout[0].startswith(
+        "Please use one of the following configuration targets:"
     )
 
 
@@ -37,7 +37,7 @@ def test_defconfig(create_project):
     stdout = project.make("hello_defconfig")
     assert stdout[0] == "Build configured for hello_defconfig"
     assert (project.root_dir / ".config").exists()
-    with pytest.raises(sh.ErrorReturnCode):
+    with pytest.raises(CommandError):
         project.make("invalid_defconfig")
 
 
@@ -116,9 +116,9 @@ def test_build_dir(create_project):
     stdout = project.make("env", cli={"O": "/tmp/absolute_dir"})
     assert "OB_BUILD_DIR=/tmp/absolute_dir" in stdout
 
-    with pytest.raises(sh.ErrorReturnCode) as exc:
+    with pytest.raises(CommandError) as exc:
         project.make("env", env={"OB_BUILD_DIR": "relative_dir"})
-    assert b"absolute" in exc.value.stderr
+    assert "absolute" in exc.value.stderr[0]
 
     stdout = project.make("env", env={"OB_BUILD_DIR": "/tmp/absolute_dir"})
     assert "OB_BUILD_DIR=/tmp/absolute_dir" in stdout

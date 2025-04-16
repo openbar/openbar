@@ -1,29 +1,30 @@
 import logging
 import os
 import re
+import shlex
 from pathlib import Path
-from shlex import quote
 from textwrap import dedent
 from typing import NamedTuple
 
 import pytest
-import sh
 from git import Repo
 from mergedeep import Strategy
 from mergedeep import merge
 
+from . import CommandNotFoundError
+from . import command_run
+
 logger = logging.getLogger(__name__)
 
-logging.getLogger("sh").setLevel(logging.WARNING)
 
 CONTAINER_ENGINES = ["docker", "podman"]
 
 
 def command_is_available(command_name):
     try:
-        sh.Command(command_name)
+        command_run(command_name, "--help", _quiet=True)
         return True
-    except sh.CommandNotFound:
+    except CommandNotFoundError:
         return False
 
 
@@ -203,13 +204,13 @@ class Project:
         with open(path, "w", encoding="utf-8") as stream:
             stream.write(dedent(data))
 
-    def run(self, command_name, *args, **kwargs):
+    def run(self, *args, **kwargs):
         config = merge({}, self.__config, kwargs, strategy=Strategy.ADDITIVE)
 
         command_args = [
             *args,
             *[
-                f"{str(k).upper()}={quote(str(v))}"
+                f"{str(k).upper()}={shlex.quote(str(v))}"
                 for k, v in config.get("cli", {}).items()
             ],
         ]
@@ -230,19 +231,7 @@ class Project:
 
         command_kwargs["_env"] = command_env
 
-        command = sh.Command(command_name)
-
-        result = command(*command_args, **command_kwargs)
-
-        def debug_stdout(stdout):
-            for line in stdout.splitlines():
-                logger.debug(line)
-
-        if command_kwargs.get("_return_cmd", False):
-            debug_stdout(result.stdout)
-            return result
-        debug_stdout(result)
-        return result.splitlines()
+        return command_run(*command_args, **command_kwargs)
 
     def make(self, *args, **kwargs):
         return self.run(

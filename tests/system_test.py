@@ -1,35 +1,37 @@
 import logging
 
 import pytest
-import sh
+
+from . import CommandError
+from . import command_run
 
 logger = logging.getLogger(__name__)
 
 
 @pytest.mark.no_container_engine
 def test_gnu_make():
-    stdout = sh.make("--version").splitlines()
+    stdout = command_run("make", "--version")
     logger.info(stdout[0])
     assert stdout[0].lower().startswith("gnu make")
 
 
 @pytest.mark.no_container_engine
 def test_gnu_awk():
-    stdout = sh.awk("--version").splitlines()
+    stdout = command_run("awk", "--version")
     logger.info(stdout[0])
     assert stdout[0].lower().startswith("gnu awk")
 
 
 @pytest.mark.docker
 def test_docker():
-    stdout = sh.docker("--version").splitlines()
+    stdout = command_run("docker", "--version")
     logger.info(stdout[0])
     assert stdout[0].lower().startswith("docker")
 
 
 @pytest.mark.podman
 def test_podman():
-    stdout = sh.podman("--version").splitlines()
+    stdout = command_run("podman", "--version")
     logger.info(stdout[0])
     assert stdout[0].lower().startswith("podman")
 
@@ -64,10 +66,10 @@ def test_project_fixture(create_project):
         assert var in stdout
 
     # Failing command (pytest)
-    with pytest.raises(sh.ErrorReturnCode_1):
+    with pytest.raises(CommandError):
         project.run("false")
 
-    # Failing command (sh)
+    # Failing command (command)
     project.run("false", _ok_code=(0, 1))
 
     # Make command

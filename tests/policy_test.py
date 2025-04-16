@@ -1,8 +1,8 @@
 import logging
 
 import pytest
-import sh
 
+from . import CommandError
 from . import check_container_build
 from . import check_container_pull
 from . import container_rm
@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 def check_make(project, check_fn, check_stdout, make_kwargs):
     if check_stdout is None:
-        with pytest.raises(sh.ErrorReturnCode_2):
+        with pytest.raises(CommandError):
             project.make(**make_kwargs)
     else:
         stdout = project.make(**make_kwargs)
