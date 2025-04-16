@@ -2,8 +2,8 @@ import logging
 import re
 
 import pytest
-import sh
 
+from . import command_run
 from . import iter_containers
 
 logger = logging.getLogger(__name__)
@@ -38,7 +38,7 @@ def test_uid_gid(create_project):
         matches = re.match(r"uid=(?P<uid>\d+).* gid=(?P<gid>\d+)", stdout)
         return (matches["uid"], matches["gid"])
 
-    local_uid, local_gid = get_uid_gid(sh.id())
+    local_uid, local_gid = get_uid_gid(command_run("id")[0])
 
     stdout = project.make("id")
     container_uid, container_gid = get_uid_gid(stdout[-1])
