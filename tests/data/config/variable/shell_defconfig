@@ -1,0 +1,4 @@
+TEST_VAR != echo foo bar baz | cut -d " " -f2
+TEST_VAR2 != echo foo bar baz | sed 's: :\n:g' | head -n2 | tail -n1
+
+include ${OB_DEFCONFIG_DIR}/variable.inc

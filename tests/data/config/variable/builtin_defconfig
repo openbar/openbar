@@ -1,0 +1,4 @@
+TEST_VAR = ${AR} ${CC} ${CXX} ${RM}
+TEST_VAR2 = ${ARFLAGS} ${CFLAGS} ${CXXFLAGS}
+
+include ${OB_DEFCONFIG_DIR}/variable.inc

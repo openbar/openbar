@@ -1,0 +1,9 @@
+override define TEST_VAR =
+cfg
+endef
+
+override define TEST_VAR2 +=
+cfg
+endef
+
+include ${OB_DEFCONFIG_DIR}/variable.inc

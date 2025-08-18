@@ -1,0 +1,9 @@
+TEST_VAR = foo\
+           bar\
+           baz
+
+TEST_VAR2 = foo \
+            bar \
+	    baz
+
+include ${OB_DEFCONFIG_DIR}/variable.inc
