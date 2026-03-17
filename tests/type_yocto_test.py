@@ -16,16 +16,16 @@ def pytest_generate_tests(metafunc):
 
 class TestYocto:
     @pytest.fixture
-    def project_default_kwargs(self, container, poky_dir, project_dirs):
+    def project_default_kwargs(self, container, yocto_layers_dir, project_dirs):
         return {
             "env": {
                 "OB_CONTAINER": container,
-                "OB_CONTAINER_VOLUMES": poky_dir,
+                "OB_CONTAINER_VOLUMES": yocto_layers_dir,
                 "DL_DIR": project_dirs.session_dir / "downloads",
                 "SSTATE_DIR": project_dirs.session_dir / "sstate-cache",
             },
             "type": "yocto",
-            "poky_dir": poky_dir,
+            "yocto_layers_dir": yocto_layers_dir,
             "_tty_out": False,
         }
 

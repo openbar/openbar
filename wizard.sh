@@ -5,10 +5,11 @@
 set -e
 
 OPENBAR_GITHUB_NWO="openbar/openbar"
-YOCTO_POKY_GITHUB_NWO="yoctoproject/poky"
 
 OPENBAR_GIT_URL="https://github.com/${OPENBAR_GITHUB_NWO}.git"
-YOCTO_POKY_GIT_URL="https://github.com/${YOCTO_POKY_GITHUB_NWO}.git"
+YOCTO_BITBAKE_GIT_URL="https://git.openembedded.org/bitbake"
+YOCTO_OE_CORE_GIT_URL="https://git.openembedded.org/openembedded-core"
+YOCTO_META_YOCTO_GIT_URL="https://git.yoctoproject.org/meta-yocto"
 
 OPENBAR_URL="https://openbar.github.io/openbar"
 WIZARD_URL="${OPENBAR_URL}/wizard"
@@ -309,7 +310,8 @@ create_root() {
 
 		if [ "${PROJECT_TYPE}" = "yocto" ]; then
 			cat <<-EOF
-				export OB_INITENV_SCRIPT := \${CURDIR}/${YOCTO_POKY_DIR}/oe-init-build-env
+				export OB_INITENV_SCRIPT := \${CURDIR}/${YOCTO_LAYERS_DIR}/openembedded-core/oe-init-build-env
+				export TEMPLATECONF      := \${CURDIR}/${YOCTO_LAYERS_DIR}/meta-yocto/meta-poky/conf/templates/default
 			EOF
 		elif [ "${PROJECT_TYPE}" = "initenv" ]; then
 			cat <<-EOF
@@ -360,7 +362,12 @@ create_manifest() {
 
 		if [ "${PROJECT_TYPE}" = "yocto" ]; then
 			cat <<-EOF
-				  <project path="${YOCTO_POKY_DIR}" remote="github" revision="master" name="${YOCTO_POKY_GITHUB_NWO}" />
+				  <remote name="openembedded" fetch="https://git.openembedded.org" />
+				  <remote name="yoctoproject" fetch="https://git.yoctoproject.org" />
+
+				  <project path="${YOCTO_LAYERS_DIR}/bitbake" remote="openembedded" revision="master" name="bitbake" />
+				  <project path="${YOCTO_LAYERS_DIR}/openembedded-core" remote="openembedded" revision="master" name="openembedded-core" />
+				  <project path="${YOCTO_LAYERS_DIR}/meta-yocto" remote="yoctoproject" revision="master" name="meta-yocto" />
 			EOF
 		fi
 
@@ -381,7 +388,9 @@ create_project() {
 		add_git_submodule "${GIT_MAIN_PATH}" "${OPENBAR_GIT_URL}" "${OPENBAR_DIR}" "${GIT_REVISION}"
 
 		if [ "${PROJECT_TYPE}" = "yocto" ]; then
-			add_git_submodule "${GIT_MAIN_PATH}" "${YOCTO_POKY_GIT_URL}" "${YOCTO_POKY_DIR}"
+			add_git_submodule "${GIT_MAIN_PATH}" "${YOCTO_BITBAKE_GIT_URL}" "${YOCTO_LAYERS_DIR}/bitbake"
+			add_git_submodule "${GIT_MAIN_PATH}" "${YOCTO_OE_CORE_GIT_URL}" "${YOCTO_LAYERS_DIR}/openembedded-core"
+			add_git_submodule "${GIT_MAIN_PATH}" "${YOCTO_META_YOCTO_GIT_URL}" "${YOCTO_LAYERS_DIR}/meta-yocto"
 		fi
 
 		create_gitignore "${GIT_MAIN_PATH}"
@@ -622,19 +631,20 @@ ask_initenv_script() {
 		sanitize onlyprint noleadingslash notrailingslash nospace preferedlower
 }
 
-ask_yocto_poky_dir() {
+ask_yocto_layers_dir() {
 	# shellcheck disable=SC2312
 	cat >&3 <<-EOF
 
-		The Yocto Poky repository must be part of the project.
+		The Yocto layers (bitbake, openembedded-core, meta-yocto) must be
+		part of the project, under a common layers directory.
 
 		  ${PROJECT_NAME}/
 		  ├── ${CONFIG_DIR}/
 		  ├── ${OPENBAR_DIR}/
-		  └── $(bold "<? yocto poky directory ?>")
+		  └── $(bold "<? yocto layers directory ?>")
 	EOF
 
-	ask_value "What is the path of the poky directory?" "platform/poky" |
+	ask_value "What is the path of the yocto layers directory?" "platform" |
 		sanitize onlyprint noleadingslash notrailingslash nospace preferedlower
 }
 
@@ -763,7 +773,7 @@ main() {
 		INITENV_SCRIPT=$(ask_initenv_script)
 
 	elif [ "${PROJECT_TYPE}" = "yocto" ]; then
-		YOCTO_POKY_DIR=$(ask_yocto_poky_dir)
+		YOCTO_LAYERS_DIR=$(ask_yocto_layers_dir)
 	fi
 
 	GIT_REMOTE=$(ask_git_remote)
@@ -813,7 +823,7 @@ main() {
 		echo "INITENV_SCRIPT      = ${INITENV_SCRIPT}"
 
 	elif [ "${PROJECT_TYPE}" = "yocto" ]; then
-		echo "YOCTO_POKY_DIR      = ${YOCTO_POKY_DIR}"
+		echo "YOCTO_LAYERS_DIR    = ${YOCTO_LAYERS_DIR}"
 	fi
 
 	cat <<-EOF

@@ -132,12 +132,20 @@ def project_dirs(request, tmp_path_factory):
 
 
 @pytest.fixture(scope="session")
-def poky_dir(project_dirs):
-    poky_url = "https://github.com/yoctoproject/poky.git"
-    poky_dir = project_dirs.session_dir / "poky"
-    logger.info(f"Cloning poky from {poky_url}")
-    Repo.clone_from(poky_url, poky_dir)
-    return poky_dir
+def yocto_layers_dir(project_dirs):
+    layers_dir = project_dirs.session_dir / "layers"
+
+    repos = {
+        "bitbake": "https://git.openembedded.org/bitbake",
+        "openembedded-core": "https://git.openembedded.org/openembedded-core",
+        "meta-yocto": "https://git.yoctoproject.org/meta-yocto",
+    }
+
+    for name, url in repos.items():
+        logger.info(f"Cloning {name} from {url}")
+        Repo.clone_from(url, layers_dir / name)
+
+    return layers_dir
 
 
 class Project:
@@ -186,8 +194,12 @@ class Project:
                 export OB_INITENV_SCRIPT := {self.defconfig_dir / self.initenv_script}
             """
         elif self.type == "yocto":
+            initenv_script = "openembedded-core/oe-init-build-env"
+            templateconf = "meta-yocto/meta-poky/conf/templates/default"
+
             data += f"""
-                export OB_INITENV_SCRIPT := {self.poky_dir / "oe-init-build-env"}
+                export OB_INITENV_SCRIPT := {self.yocto_layers_dir / initenv_script}
+                export TEMPLATECONF      := {self.yocto_layers_dir / templateconf}
             """
         elif self.type != "simple":
             raise ValueError("Invalid project type")

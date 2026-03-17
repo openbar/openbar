@@ -74,6 +74,7 @@ ifeq (${OB_TYPE},yocto)
   override OB_EXPORT += DEPLOY_DIR DL_DIR SSTATE_DIR
   override OB_EXPORT += DISTRO MACHINE
   override OB_EXPORT += OB_YOCTO_EXPORT_VARIABLE OB_YOCTO_LAYERS
+  override OB_EXPORT += TEMPLATECONF
 endif
 
 # Ensure that values in OB_EXPORT are sorted and unique.
