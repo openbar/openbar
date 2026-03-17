@@ -24,6 +24,9 @@ class TestYocto:
                 "DL_DIR": project_dirs.session_dir / "downloads",
                 "SSTATE_DIR": project_dirs.session_dir / "sstate-cache",
             },
+            "cli": {
+                "BB_HASHSERVE_DB_DIR": project_dirs.session_dir / "sstate-cache",
+            },
             "type": "yocto",
             "yocto_layers_dir": yocto_layers_dir,
             "_tty_out": False,
