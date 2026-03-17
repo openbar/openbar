@@ -15,7 +15,9 @@ include ${OPENBAR_DIR}/includes/common.mk
 include ${OPENBAR_DIR}/includes/type.mk
 
 # Save the variables defined before to load the configuration variables.
-VARIABLES_BEFORE_LOAD := VARIABLES_BEFORE_LOAD ${.VARIABLES}
+# Only keep variable names starting with a letter to avoid Make's automatic
+# variables (like %D, @F, ^D) being treated as patterns by filter-out later.
+VARIABLES_BEFORE_LOAD := VARIABLES_BEFORE_LOAD $(filter $(addsuffix %,${ALPHA}),${.VARIABLES})
 
 # Load the configuration variables and targets.
 ifeq ($(realpath ${CONFIG}),)
