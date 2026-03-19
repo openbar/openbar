@@ -15,9 +15,10 @@ include ${OPENBAR_DIR}/includes/common.mk
 include ${OPENBAR_DIR}/includes/type.mk
 
 # Save the variables defined before to load the configuration variables.
-# Only keep variable names starting with a letter to avoid Make's automatic
-# variables (like %D, @F, ^D) being treated as patterns by filter-out later.
-VARIABLES_BEFORE_LOAD := VARIABLES_BEFORE_LOAD $(filter $(addsuffix %,${ALPHA}),${.VARIABLES})
+# Only keep variable names starting with an uppercase letter to avoid Make's
+# automatic variables (like %D, @F, ^D) being treated as patterns by
+# filter-out later.
+VARIABLES_BEFORE_LOAD := VARIABLES_BEFORE_LOAD $(filter $(addsuffix %,${UPPER}),${.VARIABLES})
 
 # Load the configuration variables and targets.
 ifeq ($(realpath ${CONFIG}),)
@@ -27,8 +28,9 @@ else
   $(call config-load-targets)
 endif
 
-# Export all the variables loaded from the configuration.
-export $(filter-out ${VARIABLES_BEFORE_LOAD},${.VARIABLES})
+# Export only the variables loaded from the configuration that start with an
+# uppercase letter. Variables starting with lowercase are considered private.
+export $(filter-out ${VARIABLES_BEFORE_LOAD},$(filter $(addsuffix %,${UPPER}),${.VARIABLES}))
 
 # Add the "shell" target.
 shell:
