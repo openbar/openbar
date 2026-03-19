@@ -1,0 +1,7 @@
+VAR = hello
+VAR1 = VAR
+TEST_VAR = ${${VAR1}}
+VAR2 = VAR1
+TEST_VAR2 = ${${${VAR2}}}
+
+include ${OB_DEFCONFIG_DIR}/variable.inc

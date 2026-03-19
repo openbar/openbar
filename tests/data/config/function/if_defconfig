@@ -1,0 +1,14 @@
+NONEMPTY := something
+
+TEST_IF_TRUE  := $(if ${NONEMPTY},yes,no)
+TEST_IF_FALSE := $(if ,yes,no)
+TEST_OR       := $(or ,fallback)
+TEST_AND_OK   := $(and ${NONEMPTY},result)
+TEST_AND_FAIL := $(and ,result)
+
+build:
+	echo $${TEST_IF_TRUE}
+	echo $${TEST_IF_FALSE}
+	echo $${TEST_OR}
+	echo $${TEST_AND_OK}
+	echo $${TEST_AND_FAIL}

@@ -1,0 +1,6 @@
+sinclude ${OB_DEFCONFIG_DIR}/nonexistent.inc
+
+TEST_VAR = after_missing_include
+
+build:
+	echo $${TEST_VAR}

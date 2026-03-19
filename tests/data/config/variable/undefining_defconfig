@@ -1,0 +1,15 @@
+TEST_VAR1 = one
+TEST_VAR2 = two
+TEST_VAR3 = three
+TEST_VAR4 = four
+
+undefine TEST_VAR2
+undefine TEST_VAR4
+
+build:
+	echo $${TEST_VAR1}
+ifdef TEST_VAR2
+	echo $${TEST_VAR2}
+endif
+	echo $${TEST_VAR3}
+	echo $${TEST_VAR4}

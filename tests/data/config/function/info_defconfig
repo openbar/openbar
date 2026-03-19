@@ -1,0 +1,4 @@
+build:
+	$(info info_message)
+	$(warning warning_message)
+	echo "done"

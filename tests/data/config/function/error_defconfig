@@ -1,0 +1,4 @@
+$(error config_error_message)
+
+build:
+	echo "never"

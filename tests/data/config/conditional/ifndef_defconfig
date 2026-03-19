@@ -1,0 +1,15 @@
+DEFINED = yes
+
+ifndef UNDEFINED
+TEST_VAR1 = ifndef_true
+else
+TEST_VAR1 = ifndef_false
+endif
+
+ifndef DEFINED
+TEST_VAR2 = ifndef_true
+else
+TEST_VAR2 = ifndef_false
+endif
+
+include ${OB_DEFCONFIG_DIR}/conditional.inc

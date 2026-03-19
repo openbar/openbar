@@ -1,0 +1,6 @@
+TEST_VAR  := $(shell echo hello)
+TEST_VAR2 := $(shell printf '%s\n' foo bar | sort -r | head -1)
+
+build:
+	echo $${TEST_VAR}
+	echo $${TEST_VAR2}

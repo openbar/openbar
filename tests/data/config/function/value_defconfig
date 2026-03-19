@@ -1,0 +1,10 @@
+DEFERRED = ${WILL_BE_SET}
+
+TEST_EARLY := ${DEFERRED}
+TEST_VALUE := $(value DEFERRED)
+
+WILL_BE_SET = hello
+
+build:
+	echo ${TEST_EARLY}
+	echo ${TEST_VALUE}

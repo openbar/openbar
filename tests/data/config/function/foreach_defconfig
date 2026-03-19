@@ -1,0 +1,6 @@
+ITEMS := a b c
+
+TEST_VAR := $(foreach x,${ITEMS},item_${x})
+
+build:
+	echo $${TEST_VAR}

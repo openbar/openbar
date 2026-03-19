@@ -1,0 +1,8 @@
+define new-var
+$(1) := $(2)
+endef
+
+$(eval $(call new-var,TEST_VAR,hello))
+
+build:
+	echo $${TEST_VAR}

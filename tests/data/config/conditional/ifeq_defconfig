@@ -1,0 +1,15 @@
+VAR = foo
+
+ifeq (${VAR},foo)
+TEST_VAR1 = ifeq_true
+else
+TEST_VAR1 = ifeq_false
+endif
+
+ifeq (${VAR},bar)
+TEST_VAR2 = ifeq_true
+else
+TEST_VAR2 = ifeq_false
+endif
+
+include ${OB_DEFCONFIG_DIR}/conditional.inc
