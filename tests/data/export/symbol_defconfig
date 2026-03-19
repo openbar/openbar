@@ -1,0 +1,4 @@
+_TEST_VAR = symbol
+
+build:
+	echo $${_TEST_VAR}

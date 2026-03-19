@@ -1,0 +1,4 @@
+test_var = lowercase
+
+build:
+	echo $${test_var}
