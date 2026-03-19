@@ -126,8 +126,10 @@ config-parse = $(subst ${VERTICALTAB},${NEWLINE},$(shell LC_ALL=C ${CONFIG_MAKE}
 # The OB_ALL_TARGETS list the available targets from the configuration. The
 # internal "shell" target is added manually.
 #
-# The OB_MANUAL_TARGETS is a user configurable variable. The OB_AUTO_TARGETS is
-# automatically deducted from the previous OB_*_TARGETS variables.
+# By convention, targets starting with a lowercase letter are auto targets.
+# All other targets (uppercase, symbol) are considered manual. The
+# OB_MANUAL_TARGETS variable can be used to explicitly mark additional targets
+# as manual, overriding the convention.
 #
 # The OB_AUTO_TARGETS are added as dependencies of the "all" target.
 define config-load-variables-noeval
@@ -136,7 +138,10 @@ define config-load-variables-noeval
   OB_ALL_TARGETS += shell
   OB_MANUAL_TARGETS += shell
 
-  OB_AUTO_TARGETS := $$(filter-out $${OB_MANUAL_TARGETS},$${OB_ALL_TARGETS})
+  OB_AUTO_TARGETS := $$(filter $$(addsuffix %,$${LOWER}),$${OB_ALL_TARGETS})
+  OB_AUTO_TARGETS := $$(filter-out $${OB_MANUAL_TARGETS},$${OB_AUTO_TARGETS})
+
+  OB_MANUAL_TARGETS += $$(filter-out $${OB_AUTO_TARGETS},$${OB_ALL_TARGETS})
 
   .PHONY: $${OB_ALL_TARGETS}
 
