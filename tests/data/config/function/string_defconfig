@@ -1,0 +1,28 @@
+SRC := foo bar baz
+
+TEST_SUBST     := $(subst bar,BAR,${SRC})
+TEST_PATSUBST  := $(patsubst b%,B%,${SRC})
+TEST_STRIP     := $(strip   foo   bar  )
+TEST_FINDSTR   := $(findstring bar,${SRC})
+TEST_FILTER    := $(filter ba%,${SRC})
+TEST_FILTEROUT := $(filter-out bar,${SRC})
+TEST_SORT      := $(sort baz foo bar foo)
+TEST_WORD      := $(word 2,${SRC})
+TEST_WORDLIST  := $(wordlist 1,2,${SRC})
+TEST_WORDS     := $(words ${SRC})
+TEST_FIRST     := $(firstword ${SRC})
+TEST_LAST      := $(lastword ${SRC})
+
+build:
+	echo $${TEST_SUBST}
+	echo $${TEST_PATSUBST}
+	echo $${TEST_STRIP}
+	echo $${TEST_FINDSTR}
+	echo $${TEST_FILTER}
+	echo $${TEST_FILTEROUT}
+	echo $${TEST_SORT}
+	echo $${TEST_WORD}
+	echo $${TEST_WORDLIST}
+	echo $${TEST_WORDS}
+	echo $${TEST_FIRST}
+	echo $${TEST_LAST}

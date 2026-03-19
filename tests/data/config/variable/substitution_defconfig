@@ -1,0 +1,6 @@
+VAR := foo.fail bar.fail
+TEST_VAR := ${VAR:.fail=.ok}
+VAR2 := fail.foo fail.bar
+TEST_VAR2 := ${VAR2:fail.%=%.ok}
+
+include ${OB_DEFCONFIG_DIR}/variable.inc

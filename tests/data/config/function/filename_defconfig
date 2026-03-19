@@ -1,0 +1,24 @@
+PATH_VAR := /some/path/to/file.c
+
+TEST_DIR      := $(dir ${PATH_VAR})
+TEST_NOTDIR   := $(notdir ${PATH_VAR})
+TEST_SUFFIX   := $(suffix ${PATH_VAR})
+TEST_BASENAME := $(basename ${PATH_VAR})
+TEST_ADDSUFX  := $(addsuffix .bak,foo bar)
+TEST_ADDPFX   := $(addprefix /dir/,foo bar)
+TEST_JOIN     := $(join foo bar,.c .h)
+TEST_WILDCARD := $(wildcard /no/such/path/xyz/*)
+TEST_ABSPATH  := $(abspath /foo/../bar)
+TEST_REALPATH := $(realpath /no/such/path/xyz)
+
+build:
+	echo $${TEST_DIR}
+	echo $${TEST_NOTDIR}
+	echo $${TEST_SUFFIX}
+	echo $${TEST_BASENAME}
+	echo $${TEST_ADDSUFX}
+	echo $${TEST_ADDPFX}
+	echo $${TEST_JOIN}
+	echo $${TEST_WILDCARD}
+	echo $${TEST_ABSPATH}
+	echo $${TEST_REALPATH}

@@ -1,0 +1,11 @@
+RECURSIVE_VAR = hello
+SIMPLE_VAR := hello
+
+TEST_RECURSIVE := $(flavor RECURSIVE_VAR)
+TEST_SIMPLE    := $(flavor SIMPLE_VAR)
+TEST_UNDEF     := $(flavor UNDEF_VAR_XYZ)
+
+build:
+	echo $${TEST_RECURSIVE}
+	echo $${TEST_SIMPLE}
+	echo $${TEST_UNDEF}

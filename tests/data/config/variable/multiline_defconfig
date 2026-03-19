@@ -1,0 +1,15 @@
+define TEST_VAR
+foo
+bar
+baz
+endef
+
+define TEST_VAR2
+foo
+bar
+baz
+endef
+
+build:
+	echo "$${TEST_VAR}"
+	echo $${TEST_VAR2}

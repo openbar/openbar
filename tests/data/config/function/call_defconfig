@@ -1,0 +1,6 @@
+swap = $(2) $(1)
+
+TEST_VAR := $(call swap,hello,world)
+
+build:
+	echo $${TEST_VAR}

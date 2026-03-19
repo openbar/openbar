@@ -1,0 +1,3 @@
+TEST_VAR = from_main_file
+
+include ${OB_DEFCONFIG_DIR}/included.inc

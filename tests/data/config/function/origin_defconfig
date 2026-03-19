@@ -1,0 +1,10 @@
+FILE_VAR = defined_in_file
+
+TEST_FILE  := $(origin FILE_VAR)
+TEST_UNDEF := $(origin UNDEFINED_VAR_XYZ)
+TEST_ENV   := $(origin PATH)
+
+build:
+	echo $${TEST_FILE}
+	echo $${TEST_UNDEF}
+	echo $${TEST_ENV}

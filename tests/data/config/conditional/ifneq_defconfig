@@ -1,0 +1,15 @@
+VAR = foo
+
+ifneq (${VAR},bar)
+TEST_VAR1 = ifneq_true
+else
+TEST_VAR1 = ifneq_false
+endif
+
+ifneq (${VAR},foo)
+TEST_VAR2 = ifneq_true
+else
+TEST_VAR2 = ifneq_false
+endif
+
+include ${OB_DEFCONFIG_DIR}/conditional.inc

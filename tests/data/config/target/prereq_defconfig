@@ -1,0 +1,7 @@
+OB_MANUAL_TARGETS += setup
+
+setup:
+	echo "setup"
+
+build: setup
+	echo "build"

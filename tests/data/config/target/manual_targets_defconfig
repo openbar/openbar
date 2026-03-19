@@ -1,0 +1,7 @@
+OB_MANUAL_TARGETS += manual
+
+auto:
+	echo "auto"
+
+manual:
+	echo "manual"
