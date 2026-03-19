@@ -40,7 +40,7 @@ def test_uid_gid(create_project):
 
     local_uid, local_gid = get_uid_gid(command_run("id")[0])
 
-    stdout = project.make("id")
+    stdout = project.make(".id")
     container_uid, container_gid = get_uid_gid(stdout[-1])
 
     assert local_uid == container_uid
@@ -49,7 +49,7 @@ def test_uid_gid(create_project):
 
 def test_home(create_project):
     project = create_project(defconfig="container_defconfig")
-    stdout = project.make("home")
+    stdout = project.make(".home")
     assert stdout[-1] == "/home/container"
 
 
@@ -60,7 +60,7 @@ def test_volumes(create_project, project_dirs):
 
     project = create_project(defconfig="container_defconfig")
     stdout = project.make(
-        "volumes",
+        ".volumes",
         env={"OB_CONTAINER_VOLUMES": f"{test_file} {test_file}:/opt/test_file:ro"},
         cli={"TEST_FILE": str(test_file)},
     )
@@ -70,7 +70,7 @@ def test_volumes(create_project, project_dirs):
 
 def test_os_release(create_project, container):
     project = create_project(defconfig="container_defconfig")
-    stdout = project.make("os_release")
+    stdout = project.make(".os_release")
     image = container.split("/", 1)[1]
     if image.startswith("almalinux"):
         assert stdout[-1].startswith("Alma")

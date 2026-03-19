@@ -26,7 +26,7 @@ def test_help(create_project):
     usefull_index = stdout.index("Usefull targets:")
     assert "* foo" in stdout[configured_index + 1 : configuration_index - 1]
     assert "* bar" in stdout[configured_index + 1 : configuration_index - 1]
-    assert "  baz" in stdout[configured_index + 1 : configuration_index - 1]
+    assert "  .baz" in stdout[configured_index + 1 : configuration_index - 1]
     assert "  shell" in stdout[configured_index + 1 : configuration_index - 1]
     assert "  main_defconfig" in stdout[configuration_index + 1 : usefull_index - 1]
 
@@ -107,20 +107,20 @@ def test_verbose(create_project):
 def test_build_dir(create_project):
     project = create_project(defconfig="main_defconfig")
 
-    stdout = project.make("env")
+    stdout = project.make(".env")
     assert f"OB_BUILD_DIR={project.root_dir}/build" in stdout
 
-    stdout = project.make("env", cli={"O": "relative_dir"})
+    stdout = project.make(".env", cli={"O": "relative_dir"})
     assert f"OB_BUILD_DIR={project.root_dir}/relative_dir" in stdout
 
-    stdout = project.make("env", cli={"O": "/tmp/absolute_dir"})
+    stdout = project.make(".env", cli={"O": "/tmp/absolute_dir"})
     assert "OB_BUILD_DIR=/tmp/absolute_dir" in stdout
 
     with pytest.raises(CommandError) as exc:
-        project.make("env", env={"OB_BUILD_DIR": "relative_dir"})
+        project.make(".env", env={"OB_BUILD_DIR": "relative_dir"})
     assert "absolute" in exc.value.stderr[0]
 
-    stdout = project.make("env", env={"OB_BUILD_DIR": "/tmp/absolute_dir"})
+    stdout = project.make(".env", env={"OB_BUILD_DIR": "/tmp/absolute_dir"})
     assert "OB_BUILD_DIR=/tmp/absolute_dir" in stdout
 
 
@@ -132,7 +132,7 @@ def test_foreach(project_dirs, create_project):
     for index, name in enumerate(["bar", "baz", "foo"]):
         assert stdout[3 * index + 0] == f"Build configured for {name}_defconfig"
         assert stdout[3 * index + 2] == f"Hello {name}"
-    stdout = project.make("foreach", "goodbye")
+    stdout = project.make("foreach", ".goodbye")
     for index, name in enumerate(["bar", "baz", "foo"]):
         assert stdout[3 * index + 0] == f"Build configured for {name}_defconfig"
         assert stdout[3 * index + 2] == f"Goodbye {name}"
