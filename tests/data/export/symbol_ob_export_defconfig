@@ -1,0 +1,5 @@
+_TEST_VAR = symbol_ob_export
+override OB_EXPORT += _TEST_VAR
+
+build:
+	echo $${_TEST_VAR}

@@ -1,0 +1,5 @@
+test_var = lowercase_ob_export
+override OB_EXPORT += test_var
+
+build:
+	echo $${test_var}

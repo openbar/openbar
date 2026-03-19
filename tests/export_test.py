@@ -113,3 +113,25 @@ def test_export(create_project, project_dirs, defconfig, project_kwargs, expecte
     else:
         assert stdout[-3] == "defined"
         assert stdout[-1] == expected
+
+
+@pytest.mark.parametrize(
+    ("defconfig", "expected"),
+    [
+        # CFG variable starting with lowercase is not exported to shell
+        ("lowercase_defconfig", ""),
+        # CFG variable starting with a symbol is not exported to shell
+        ("symbol_defconfig", ""),
+        # CFG lowercase variable explicitly added to OB_EXPORT is exported
+        ("lowercase_ob_export_defconfig", "lowercase_ob_export"),
+        # CFG symbol variable explicitly added to OB_EXPORT is exported
+        ("symbol_ob_export_defconfig", "symbol_ob_export"),
+    ],
+)
+def test_cfg_export(create_project, project_dirs, defconfig, expected):
+    project = create_project(
+        defconfig_dir=project_dirs.tests_data_dir / "export",
+        defconfig=defconfig,
+    )
+    stdout = project.make()
+    assert stdout[-1] == expected
