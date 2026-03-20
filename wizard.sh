@@ -59,7 +59,11 @@ on_sigint() {
 trap on_sigint INT
 trap on_exit EXIT
 
-# Duplicate stdout to distinguish between a return value and a print.
+# Functions in this script return values by printing to stdout, which means
+# they must be called with $(...) to capture the result. But $(...) captures
+# all stdout, so prompts and messages would be silently swallowed.
+# To work around this, fd3 is wired to the real terminal stdout here.
+# Functions print user-visible output to fd3 (>&3) and return values to stdout.
 exec 3>&1
 
 ## ask <question> [prompt]
@@ -604,6 +608,11 @@ ask_container_template() {
 		exit 1
 	fi
 
+	# containers.env is a small key=value file that sets two variables:
+	#   CONTAINER_LIST    — colon-separated list of available templates
+	#   CONTAINER_DEFAULT — the default selection
+	# eval is used here because there is no portable way to source a remote
+	# file without writing it to disk first.
 	eval "${TO_BE_EVALUATED}"
 
 	if [ -z "${CONTAINER_LIST}" ] || [ -z "${CONTAINER_DEFAULT}" ]; then
