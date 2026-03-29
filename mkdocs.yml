@@ -9,15 +9,71 @@ theme:
   name: material
   logo: images/openbar.png
   favicon: images/favicon.ico
+  palette:
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: material/brightness-auto
+        name: Switch to light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to system preference
   features:
     - content.action.edit
+    - content.code.annotate
+    - content.code.copy
+    - content.tabs.link
+    - navigation.footer
+    - navigation.indexes
+    - navigation.tabs
 
 markdown_extensions:
+  - admonition
+  - attr_list
   - def_list
+  - footnotes
+  - pymdownx.emoji:
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+      slugify: !!python/object/apply:pymdownx.slugs.slugify
+        kwds:
+          case: lower
 
 plugins:
   - search
-  - ezglossary
 
 nav:
   - Home: index.md
+  - Quickstart: quickstart.md
+  - User Guide:
+    - user-guide/index.md
+    - System Requirements: user-guide/system-requirements.md
+    - Installation: user-guide/installation.md
+    - Usage: user-guide/usage.md
+    - Configuration: user-guide/configuration.md
+    - Project Types: user-guide/project-types.md
+    - Tips & Tricks: user-guide/tips-and-tricks.md
+  - Reference:
+    - reference/index.md
+    - Variables: reference/variables.md
+  - Advanced:
+    - advanced/index.md
+    - Software Architecture: advanced/software-architecture.md
+  - Examples:
+    - examples/index.md
