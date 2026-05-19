@@ -12,6 +12,7 @@ from mergedeep import Strategy
 from mergedeep import merge
 
 from . import CommandNotFoundError
+from . import as_str
 from . import command_run
 
 logger = logging.getLogger(__name__)
@@ -150,6 +151,8 @@ def yocto_layers_dir(project_dirs):
 
 class Project:
     def __init__(self, root_dir, project_dirs, **kwargs):
+        self.__project_dirs = project_dirs
+
         self.__config = {
             "id": "test",
             "type": "simple",
@@ -170,6 +173,19 @@ class Project:
             self.make(defconfig)
         elif config is not None:
             self.write_file(".config", config)
+
+    def __repr__(self):
+        filtered_config = {
+            k: v for k, v in self.__config.items() if not k.startswith("_")
+        }
+
+        return f"Project({as_str(filtered_config, no_braces=True)})"
+
+    def __str__(self):
+        msg = repr(self)
+        msg = msg.replace(str(self.__project_dirs.session_dir), "<TMP>")
+        msg = msg.replace(str(self.__project_dirs.openbar_dir), "<OB>")
+        return msg
 
     def __getattr__(self, name):
         return self.__config[name]
@@ -268,12 +284,16 @@ def create_project(request, tmp_path, project_default_kwargs, project_dirs):
         else:
             root_dir = tmp_path
 
-        return Project(
+        project = Project(
             root_dir=root_dir,
             project_dirs=project_dirs,
             container_engine=engine,
             **project_default_kwargs,
             **kwargs,
         )
+
+        logger.info(f"{project} created")
+
+        return project
 
     return _create_project

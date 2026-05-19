@@ -107,3 +107,20 @@ def command_run(*args, **kwargs):
                 logger.debug(line)
 
     return stdout
+
+
+def as_str(data, no_braces=False):
+    if isinstance(data, dict):
+        attrs = ", ".join([f"{k}={as_str(v)}" for k, v in data.items()])
+        if no_braces:
+            return attrs
+        return f"{{{attrs}}}"
+
+    elif isinstance(data, list):
+        attrs = ", ".join([as_str(v) for v in data])
+        if no_braces:
+            return attrs
+        return f"[{attrs}]"
+
+    else:
+        return str(data)
