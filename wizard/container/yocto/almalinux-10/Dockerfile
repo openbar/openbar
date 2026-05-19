@@ -1,4 +1,4 @@
-FROM	docker.io/rockylinux:9-minimal
+FROM	docker.io/almalinux:10-minimal
 
 ENV	LANG=en_US.utf8
 
