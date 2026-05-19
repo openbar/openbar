@@ -211,7 +211,7 @@ class Project:
             """
         elif self.type == "yocto":
             initenv_script = "openembedded-core/oe-init-build-env"
-            templateconf = "meta-yocto/meta-poky/conf/templates/default"
+            templateconf = "openembedded-core/meta/conf/templates/default"
 
             data += f"""
                 export OB_INITENV_SCRIPT := {self.yocto_layers_dir / initenv_script}
