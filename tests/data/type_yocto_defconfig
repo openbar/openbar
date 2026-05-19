@@ -1,5 +1,7 @@
 DISTRO  := poky
 MACHINE := qemux86-64
 
+OB_YOCTO_LAYERS += ${OB_ROOT_DIR}/../layers/meta-yocto/meta-poky
+
 build:
 	bitbake make-native
