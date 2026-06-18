@@ -1,0 +1,299 @@
+# Installation
+
+## Using the wizard
+
+The quickest way to create a new OpenBar project is with the interactive wizard.
+
+You can [review the script][wizard-src] before running it:
+
+```bash
+curl -sSf https://openbar.github.io/openbar/wizard.sh | sh
+```
+
+[wizard-src]: https://github.com/openbar/openbar/blob/main/wizard.sh
+
+The wizard asks a series of questions, generates one or more pre-initialised
+git repositories locally, and prints the commands needed to push them to a
+server.
+
+## Wizard questions
+
+### Project settings
+
+**Project name**
+:   The name of your project. Used as the default directory name and defconfig
+    prefix. Lowercase is recommended.
+
+**Project type**
+:   The type of OpenBar project. See [Project Types](project-types.md) for
+    details.
+
+    - `simple` — all commands run directly in the container.
+    - `initenv` — like `simple`, but sources an environment script first.
+    - `yocto` — an `initenv` project with built-in Yocto/Bitbake support.
+
+    Default: `simple`.
+
+### Source layout
+
+**Git management**
+:   How the project's git repositories are managed.
+
+    - `submodule` — OpenBar (and Yocto layers if applicable) are added as
+      [git submodules][git-submodule]. Simple, no extra tooling required.
+    - `repo` — repositories are managed by [Google repo][repo]. More flexible
+      for large projects with many layers, but requires `repo` to be installed.
+
+    Default: `submodule` (or `repo` for Yocto projects).
+
+[git-submodule]: https://git-scm.com/book/en/v2/Git-Tools-Submodules
+[repo]: https://gerrit.googlesource.com/git-repo/
+
+**Repo manifest location** *(repo only)*
+:   Whether the repo manifest (`default.xml`) lives in the same repository as
+    the configuration files, or in a dedicated repository.
+
+    A dedicated manifest repository allows independent git flows for the
+    manifest and the configuration.
+
+    Default: *combined*.
+
+### Paths
+
+**Configuration directory**
+:   The directory where all configuration files (`defconfig` files, Dockerfile)
+    will be stored.
+
+    Default: `configs`.
+
+**Default defconfig file**
+:   The name of the first configuration file created by the wizard.
+    Must end in `_defconfig`.
+
+    Default: `{project_name}_defconfig`.
+
+**OpenBar directory**
+:   Where the OpenBar repository will be checked out as a submodule (or
+    referenced in the repo manifest).
+
+    Default: `third-party/openbar` (or `platform/openbar` for Yocto).
+
+**Root file** *(repo only)*
+:   The name of the OpenBar root Makefile stored in the configuration
+    repository. It is copied to the project root as `Makefile` by repo.
+
+    Default: `openbar.mk`.
+
+### Container
+
+**Container command**
+:   How the container image is obtained.
+
+    - `build` — build the image locally from a `Dockerfile`. The wizard
+      creates a starter `Dockerfile` from a template.
+    - `pull` — pull a pre-built image from a registry. The defconfig is
+      pre-configured with [`OB_CONTAINER_IMAGE`](../reference/variables.md#OB_CONTAINER_IMAGE).
+
+    Default: `build`.
+
+**Container template** *(build only)*
+:   The `Dockerfile` template to use as a starting point. The available
+    templates depend on the project type.
+
+    Default: `alpine` (or `ubuntu-24.04` for Yocto).
+
+**Init script name** *(initenv only)*
+:   The name of the environment initialisation script created by the wizard.
+
+    Default: `init.env`.
+
+**Yocto layers directory** *(yocto only)*
+:   The directory where the Yocto layers (bitbake, openembedded-core,
+    meta-yocto) will be checked out.
+
+    Default: `platform`.
+
+### Git remote
+
+**Configure git remote**
+:   Whether the wizard pre-configures the git remote URL on the generated
+    repositories. If yes, all that remains after generation is `git push`.
+
+    Default: *no*.
+
+**Git base URL** *(if remote)*
+:   The base URL of your git server, e.g. `git@github.com:` or
+    `https://github.com`.
+
+**Git main path** *(if remote or repo)*
+:   The path component appended to the base URL to form the full remote URL
+    of the main repository.
+
+    Default: `{project_name}` (or `{project_name}/{project_name}` for repo).
+
+**Git manifest path** *(split repo only)*
+:   The path component for the manifest repository remote URL.
+
+    Default: `{project_name}/manifest`.
+
+### Output
+
+**Output directory**
+:   Where to generate the repositories locally.
+
+    Default: *current directory*.
+
+## Generated project structure
+
+After the wizard completes, the following structure is generated
+(shown for a `simple` project with `submodule` layout):
+
+```
+example/                        ← git repository
+├── Makefile                    ← root Makefile
+├── configs/
+│   ├── example_defconfig       ← default configuration file
+│   └── container/
+│       └── default/
+│           └── Dockerfile      ← starter Dockerfile
+└── third-party/
+    └── openbar/                ← OpenBar git submodule
+```
+
+The `Makefile` is generated by the wizard — edit it with caution. All project
+customisation happens in `defconfig` files and the `Dockerfile`.
+
+## After the wizard
+
+The wizard prints the commands needed to publish the repositories:
+
+=== "Submodule"
+
+    ```bash
+    git -C <project-name> remote add origin <git url>
+    git -C <project-name> push origin main
+    ```
+
+    Once pushed, other developers can clone and start building:
+
+    ```bash
+    git clone --recurse-submodules <project url>
+    cd <project-name>
+    make <project-name>_defconfig
+    make
+    ```
+
+=== "Repo"
+
+    ```bash
+    git -C <project-name>/<project-name> remote add origin <git url>
+    git -C <project-name>/<project-name> push origin main
+    ```
+
+    Once pushed, other developers can fetch and start building:
+
+    ```bash
+    mkdir <project-name>
+    cd <project-name>
+    repo init -u <manifest url>
+    repo sync
+    make <project-name>_defconfig
+    make
+    ```
+
+See [Usage](usage.md) for a full walkthrough.
+
+## Manual installation
+
+### Add OpenBar
+
+=== "Submodule"
+
+    ```bash
+    git submodule add https://github.com/openbar/openbar third-party/openbar
+    ```
+
+=== "Repo"
+
+    Repo requires a manifest repository containing a `default.xml` file that
+    describes the project layout. The `<copyfile>` directive copies the root
+    file to `Makefile` after `repo sync`.
+
+    ```xml title="default.xml"
+    <?xml version="1.0" encoding="UTF-8"?>
+    <manifest>
+      <remote name="origin" fetch="." />
+      <remote name="github" fetch="https://github.com" />
+
+      <default remote="origin" revision="main" sync-j="4" />
+
+      <project path="configs" name="<project-name>/<project-name>">
+        <copyfile src="openbar.mk" dest="Makefile" />
+      </project>
+
+      <project path="third-party/openbar" remote="github"
+               revision="main" name="openbar/openbar" />
+    </manifest>
+    ```
+
+### Create the root Makefile
+
+The root `Makefile` (or `openbar.mk` for a repo layout, copied to `Makefile`
+by repo) is the entry point for OpenBar. Edit it with caution — any mistake
+here will break the build for everyone.
+
+=== "simple"
+
+    ```makefile title="Makefile"
+    export OB_PROJECT_ID    := <project-name>
+    export OB_TYPE          := simple
+    export OB_DEFCONFIG_DIR := ${CURDIR}/configs
+    export OB_CONTAINER_DIR := ${CURDIR}/configs/container
+
+    include third-party/openbar/core/main.mk
+    ```
+
+=== "initenv"
+
+    ```makefile title="Makefile"
+    export OB_PROJECT_ID     := <project-name>
+    export OB_TYPE           := initenv
+    export OB_DEFCONFIG_DIR  := ${CURDIR}/configs
+    export OB_CONTAINER_DIR  := ${CURDIR}/configs/container
+    export OB_INITENV_SCRIPT := ${CURDIR}/configs/init.env
+
+    include third-party/openbar/core/main.mk
+    ```
+
+=== "yocto"
+
+    ```makefile title="Makefile"
+    export OB_PROJECT_ID     := <project-name>
+    export OB_TYPE           := yocto
+    export OB_DEFCONFIG_DIR  := ${CURDIR}/configs
+    export OB_CONTAINER_DIR  := ${CURDIR}/configs/container
+    export OB_INITENV_SCRIPT := ${CURDIR}/platform/openembedded-core/oe-init-build-env
+    export TEMPLATECONF      := ${CURDIR}/platform/meta-yocto/meta-poky/conf/templates/default
+
+    include third-party/openbar/core/main.mk
+    ```
+
+All variables must be `export`ed so they cross the container boundary.
+See [`OB_TYPE`](../reference/variables.md#OB_TYPE) and
+[`OB_DEFCONFIG_DIR`](../reference/variables.md#OB_DEFCONFIG_DIR) for details.
+
+### Create a defconfig file
+
+See [Configuration](configuration.md) for the defconfig file format.
+
+### Create a Dockerfile
+
+Create a `Dockerfile` at the path matching
+[`OB_CONTAINER_DIR`](../reference/variables.md#OB_CONTAINER_DIR):
+
+```
+configs/
+└── container/
+    └── default/
+        └── Dockerfile
+```
